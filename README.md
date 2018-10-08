@@ -1,3 +1,3 @@
 # Coinz
-Informatics Large Practical 
+Informatics Large Practical <br>
 Sophia Singh - s1623165
