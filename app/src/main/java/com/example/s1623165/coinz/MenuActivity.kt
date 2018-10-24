@@ -1,5 +1,6 @@
 package com.example.s1623165.coinz
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
@@ -8,6 +9,7 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import kotlinx.android.synthetic.main.activity_menu.*
 import kotlinx.android.synthetic.main.app_bar_menu.*
 
@@ -58,14 +60,14 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
         when (item.itemId) {
-            R.id.nav_camera -> {
-                // Handle the camera action
+            R.id.nav_wallet -> {
+                wallet()
             }
-            R.id.nav_gallery -> {
-
+            R.id.nav_bank -> {
+                bank()
             }
-            R.id.nav_slideshow -> {
-
+            R.id.nav_send_receive-> {
+                send_receive()
             }
             R.id.nav_manage -> {
 
@@ -80,5 +82,20 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    fun bank() {
+        val bankIntent = Intent(this, BankActivity::class.java)
+        startActivity(bankIntent)
+    }
+
+    fun wallet() {
+        val walletIntent = Intent(this, WalletActivity::class.java)
+        startActivity(walletIntent)
+    }
+
+    fun send_receive() {
+        val sendReceiveIntent = Intent(this, SendReceiveActivity::class.java)
+        startActivity(sendReceiveIntent)
     }
 }

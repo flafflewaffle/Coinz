@@ -20,6 +20,9 @@
             android:name=".MenuActivity"
             android:label="@string/title_activity_menu"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".BankActivity" />
+        <activity android:name=".WalletActivity" />
+        <activity android:name=".SendReceiveActivity"></activity>
     </application>
 
 </manifest>
