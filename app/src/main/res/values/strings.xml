@@ -1,12 +1,12 @@
 <resources>
-    //Activity title names
+    <!-- Strings related to Activity Titles -->
     <string name="app_name">Coinz</string>
     <string name="bank_act">Bank</string>
     <string name="wallet_act">Wallet</string>
     <string name="send_receive_act">Send/Receive</string>
     <string name="action_settings">Settings</string>
 
-    //Navigation drawer
+    <!-- Strings related to Navigation Drawer -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>

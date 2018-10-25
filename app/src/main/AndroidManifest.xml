@@ -15,22 +15,21 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".BankActivity"
-            android:label="@string/bank_act"></activity>
+            android:label="@string/bank_act" />
         <activity
             android:name=".WalletActivity"
-            android:label="@string/wallet_act"></activity>
+            android:label="@string/wallet_act" />
         <activity
             android:name=".SendReceiveActivity"
-            android:label="@string/send_receive_act"></activity>
+            android:label="@string/send_receive_act"/>
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"></activity>
+            android:label="@string/title_activity_settings"/>
     </application>
 
 </manifest>
