@@ -52,7 +52,10 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         when (item.itemId) {
-            R.id.action_settings -> return true
+            R.id.action_settings -> {
+                settings()
+                return true
+            }
             else -> return super.onOptionsItemSelected(item)
         }
     }
@@ -97,5 +100,10 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     fun send_receive() {
         val sendReceiveIntent = Intent(this, SendReceiveActivity::class.java)
         startActivity(sendReceiveIntent)
+    }
+
+    fun settings() {
+        val settingsIntent = Intent(this, SettingsActivity::class.java)
+        startActivity(settingsIntent)
     }
 }
