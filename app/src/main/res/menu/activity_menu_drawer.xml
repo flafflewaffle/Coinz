@@ -5,8 +5,12 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_wallet"
+            android:id="@+id/nav_map"
             android:icon="@drawable/ic_menu_camera"
+            android:title="Map" />
+        <item
+            android:id="@+id/nav_wallet"
+            android:icon="@drawable/ic_menu_manage"
             android:title="Wallet" />
         <item
             android:id="@+id/nav_bank"
@@ -16,10 +20,6 @@
             android:id="@+id/nav_send_receive"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="Send/Receive Coinz" />
-        <item
-            android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Tools" />
     </group>
 
     <item android:title="Communicate">

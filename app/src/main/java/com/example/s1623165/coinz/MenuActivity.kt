@@ -4,12 +4,15 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
+import android.support.v4.content.ContextCompat.startActivity
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
+import com.example.s1623165.coinz.R.id.*
 import kotlinx.android.synthetic.main.activity_menu.*
 import kotlinx.android.synthetic.main.app_bar_menu.*
 
@@ -31,6 +34,8 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)
+
+        displayFragment(-1)
     }
 
     override fun onBackPressed() {
@@ -60,46 +65,37 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // Handle navigation view item clicks here.
-        when (item.itemId) {
+    fun displayFragment(id: Int) {
+        val fragment = when (id) {
+            R.id.nav_map -> {
+                MapFragment()
+            }
             R.id.nav_wallet -> {
-                wallet()
+                WalletFragment()
             }
             R.id.nav_bank -> {
-                bank()
+                BankFragment()
             }
-            R.id.nav_send_receive-> {
-                send_receive()
+            R.id.nav_send_receive -> {
+                SendReceiveFragment()
             }
-            R.id.nav_manage -> {
-
-            }
-            R.id.nav_share -> {
-
-            }
-            R.id.nav_send -> {
-
+            else -> {
+                MapFragment()
             }
         }
 
+        supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.relativeLayout, fragment)
+                .commit()
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+
+        displayFragment(item.itemId)
+
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
-    }
-
-    fun bank() {
-        val bankIntent = Intent(this, BankActivity::class.java)
-        startActivity(bankIntent)
-    }
-
-    fun wallet() {
-        val walletIntent = Intent(this, WalletActivity::class.java)
-        startActivity(walletIntent)
-    }
-
-    fun send_receive() {
-        val sendReceiveIntent = Intent(this, SendReceiveActivity::class.java)
-        startActivity(sendReceiveIntent)
     }
 
     fun settings() {
