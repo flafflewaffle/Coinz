@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.s1623165.coinz">
 
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -20,22 +23,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".BankActivity"
-            android:label="@string/bank_act" />
-        <activity
-            android:name=".WalletActivity"
-            android:label="@string/wallet_act" />
-        <activity
-            android:name=".SendReceiveActivity"
-            android:label="@string/send_receive_act" />
-        <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" />
-        <activity android:name=".MainActivity" />
-        <activity
-            android:name=".Wallet"
-            android:label="@string/title_activity_wallet"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

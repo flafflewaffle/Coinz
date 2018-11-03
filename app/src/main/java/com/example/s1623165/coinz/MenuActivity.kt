@@ -1,9 +1,11 @@
 package com.example.s1623165.coinz
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
+import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat.startActivity
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
@@ -35,7 +37,10 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         nav_view.setNavigationItemSelectedListener(this)
 
-        displayFragment(-1)
+        if(savedInstanceState == null) {
+            displayFragment(-1)
+            nav_view.setCheckedItem(R.id.nav_wallet)
+        }
     }
 
     override fun onBackPressed() {
@@ -80,13 +85,13 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 SendReceiveFragment()
             }
             else -> {
-                MapFragment()
+                DummyFragment()
             }
         }
 
         supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.relativeLayout, fragment)
+                .replace(R.id.relativeLayout, fragment as Fragment)
                 .commit()
     }
 
