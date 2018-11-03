@@ -87,4 +87,5 @@
     <string name="title_activity_wallet">Wallet</string>
 
     <string name="action_settings">Action Settings</string>
+    <string name="title_activity_map">Map</string>
 </resources>

@@ -25,10 +25,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setContentView(R.layout.activity_menu)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
+        fab.setOnClickListener { _ -> map() }
 
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -72,9 +69,6 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     fun displayFragment(id: Int) {
         val fragment = when (id) {
-            R.id.nav_map -> {
-                MapFragment()
-            }
             R.id.nav_wallet -> {
                 WalletFragment()
             }
@@ -85,7 +79,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 SendReceiveFragment()
             }
             else -> {
-                DummyFragment()
+                WalletFragment()
             }
         }
 
@@ -96,9 +90,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-
         displayFragment(item.itemId)
-
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
@@ -107,4 +99,10 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val settingsIntent = Intent(this, SettingsActivity::class.java)
         startActivity(settingsIntent)
     }
+
+    fun map() {
+        val mapIntent = Intent(this, Map::class.java)
+        startActivity(mapIntent)
+    }
+
 }
