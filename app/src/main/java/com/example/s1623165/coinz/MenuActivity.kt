@@ -25,7 +25,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setContentView(R.layout.activity_menu)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { _ -> map() }
+        fab.setOnClickListener { _ -> map()}
 
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
