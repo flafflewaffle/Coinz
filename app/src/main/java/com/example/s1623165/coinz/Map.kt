@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
+import android.widget.Toast
 import com.example.s1623165.coinz.R.id.fab
 import com.example.s1623165.coinz.R.id.toolbar
 import com.mapbox.android.core.location.LocationEngine
@@ -136,6 +137,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                                      MutableList<String>?) {
         Log.d(tag, "Permissions: $permissionsToExplain")
         // Present popup message or dialogue
+        val userDialogue = Snackbar.make(
+                findViewById(R.id.mapCoordinatorLayout),
+                permissionsToExplain!!.joinToString(", ", "", "", -1, "..."),
+                Snackbar.LENGTH_INDEFINITE)
+        userDialogue.show()
     }
 
     private fun setCameraPosition(location: Location) {
@@ -149,6 +155,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
             enableLocation()
         } else {
             // Open a dialogue with the user
+            val userDialogue = Toast.makeText(this, "Please enable your location", Toast.LENGTH_LONG)
+            userDialogue.show()
         }
     }
 
