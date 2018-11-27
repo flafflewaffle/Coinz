@@ -26,6 +26,12 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+    maven { url 'https://mapbox.bintray.com/mapbox' }
+}
+
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -40,5 +46,6 @@ dependencies {
     // Mapbox dependencies
     implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:6.6.3'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-locationlayer:0.5.0'
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation-ui:0.23.0'
 
 }
