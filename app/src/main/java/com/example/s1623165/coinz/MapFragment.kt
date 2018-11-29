@@ -1,5 +1,6 @@
 package com.example.s1623165.coinz
 
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -7,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.Marker
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
@@ -15,25 +17,33 @@ import com.mapbox.mapboxsdk.camera.CameraUpdate
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.constants.Style
 import com.mapbox.mapboxsdk.geometry.LatLng
+import com.mapbox.mapboxsdk.location.LocationComponent
 import com.mapbox.mapboxsdk.maps.*
+import kotlinx.android.synthetic.main.activity_map.*
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
-    lateinit var mView: View
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
+    private var locationComponent: LocationComponent? = null
+    private lateinit var permissionsManager : PermissionsManager
     private var latlng = LatLng(55.944, -3.188396)
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        Mapbox.getInstance(context!!, getString(R.string.access_token))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Mapbox.getInstance(context!!, getString(R.string.access_token))
-        mapView = mView.findViewById(R.id.mapview)
-        mapView!!.onCreate(savedInstanceState)
+        //Mapbox.getInstance(applicationContext, getString(R.string.access_token))
+        //mapView = findViewById(R.id.mapview)
+        mapView?.onCreate(savedInstanceState)
+        mapView?.getMapAsync(this)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         var root = inflater.inflate(R.layout.map_fragment, container, false)
-        //Mapbox.getInstance(context!!, getString(R.string.access_token))
         return root
     }
 
@@ -59,7 +69,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 //
 //        mapFragment.getMapAsync(this)
 
-        mapView = mView.findViewById(R.id.mapview)
+        mapView = mapView?.findViewById(R.id.mapview)
         if(mapView != null) {
             mapView!!.onCreate(savedInstanceState)
             mapView!!.onResume()

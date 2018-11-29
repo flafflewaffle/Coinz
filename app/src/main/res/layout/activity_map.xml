@@ -20,6 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
@@ -33,7 +34,7 @@
         mapbox:mapbox_cameraTargetLat="55.944"
         mapbox:mapbox_cameraTargetLng="-3.188396"
         mapbox:mapbox_styleUrl="@string/mapbox_style_mapbox_streets"
-        mapbox:mapbox_cameraZoom="12"
+        mapbox:mapbox_cameraZoom="13"
         />
 
     <android.support.design.widget.FloatingActionButton

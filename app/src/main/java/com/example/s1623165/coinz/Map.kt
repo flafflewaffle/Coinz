@@ -16,6 +16,9 @@ import com.example.s1623165.coinz.R.id.toolbar
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.annotations.IconFactory
+import com.mapbox.mapboxsdk.annotations.MarkerOptions
+import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.LocationComponent
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
@@ -30,7 +33,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
     private var locationComponent: LocationComponent? = null
-
     private lateinit var permissionsManager : PermissionsManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +56,13 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         if(mapboxMap == null) {
             Log.d(tag, "[onMapReady] mapboxMap is null")
         } else {
+            //set the map
             map = mapboxMap
+            //Test marker
+            map?.addMarker(MarkerOptions()
+                    .position(LatLng(55.944, -3.188396))
+                    .title("University of Edinburgh: George Square"))
+
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
@@ -68,7 +76,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             locationComponent = map?.locationComponent
             locationComponent?.activateLocationComponent(this)
 
-            // Set location engine interval times
+            //Set location engine interval times
             locationComponent?.locationEngine?.interval = 5000
             locationComponent?.locationEngine?.fastestInterval = 1000
 
@@ -78,6 +86,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             // Customises the component's camera mode
             locationComponent?.cameraMode = CameraMode.TRACKING
             locationComponent?.renderMode = RenderMode.NORMAL
+
+            if(locationComponent?.lastKnownLocation == null) {
+                Log.d(tag, "Last known location null")
+            }
+
         } else {
             Log.d(tag, "Permissions are not granted")
             permissionsManager = PermissionsManager(this)
@@ -110,6 +123,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         }
     }
 
+    @SuppressWarnings("MissingPermission")
     override fun onStart() {
         super.onStart()
         mapView?.onStart()
