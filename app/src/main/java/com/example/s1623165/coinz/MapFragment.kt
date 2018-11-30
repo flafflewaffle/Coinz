@@ -1,99 +1,122 @@
 package com.example.s1623165.coinz
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.util.Log
+import timber.log.Timber
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.Marker
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
-import com.mapbox.mapboxsdk.camera.CameraPosition
-import com.mapbox.mapboxsdk.camera.CameraUpdate
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
-import com.mapbox.mapboxsdk.constants.Style
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.LocationComponent
+import com.mapbox.mapboxsdk.location.modes.CameraMode
+import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.*
 import kotlinx.android.synthetic.main.activity_map.*
 
-class MapFragment : Fragment(), OnMapReadyCallback {
+class MapFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
 
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
     private var locationComponent: LocationComponent? = null
+    private lateinit var mContext: Context
     private lateinit var permissionsManager : PermissionsManager
-    private var latlng = LatLng(55.944, -3.188396)
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
-        Mapbox.getInstance(context!!, getString(R.string.access_token))
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        //Mapbox.getInstance(applicationContext, getString(R.string.access_token))
-        //mapView = findViewById(R.id.mapview)
-        mapView?.onCreate(savedInstanceState)
-        mapView?.getMapAsync(this)
+        mContext = context!!
+        Mapbox.getInstance(mContext, getString(R.string.access_token))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        var root = inflater.inflate(R.layout.map_fragment, container, false)
-        return root
+        return inflater.inflate(R.layout.map_fragment, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        var mapFragment: SupportMapFragment
-        mapFragment = fragmentManager!!.findFragmentById(R.id.mapview) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-//
-//        var transaction =
-//               childFragmentManager.beginTransaction()
-//
-//        var options = MapboxMapOptions()
-//        options.styleUrl(Style.MAPBOX_STREETS)
-//        options.camera(CameraPosition.Builder()
-//                .target(latlng)
-//                .zoom(12.0)
-//                .build())
-//        var mapFragment = SupportMapFragment.newInstance(options)
-//        transaction.add(R.id.container, mapFragment, "com.mapbox.map")
-//        transaction.commit()
-//
-//        mapFragment.getMapAsync(this)
-
         mapView = mapView?.findViewById(R.id.mapview)
-        if(mapView != null) {
-            mapView!!.onCreate(savedInstanceState)
-            mapView!!.onResume()
-            mapView!!.getMapAsync(this)
-        }
+        mapView?.onCreate(savedInstanceState)
+        mapView?.getMapAsync(this)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap?) {
-        if(mapboxMap == null){
-            Log.d(tag, "[onMapReady] mapboxMap is null")
-        }
-        else {
+        if(mapboxMap == null) {
+            Timber.e(tag, "[onMapReady] mapboxMap is null")
+        } else {
+            //set the map
             map = mapboxMap
-            var markerOptions = MarkerOptions().apply {
-                title("Hello Mapbox")
-                position(latlng)
-            }
-            map!!.addMarker(markerOptions)
-            map!!.moveCamera(CameraUpdateFactory.newLatLng(latlng))
-            //map?.uiSettings?.isCompassEnabled = true
-            //map?.uiSettings?.isZoomControlsEnabled = true
+            //Test marker
+            map?.addMarker(MarkerOptions()
+                    .position(LatLng(55.944, -3.188396))
+                    .title("University of Edinburgh: George Square"))
+
+            map?.uiSettings?.isCompassEnabled = true
+            map?.uiSettings?.isZoomControlsEnabled = true
+            enableLocation()
         }
     }
 
+    @SuppressLint("MissingPermission")
+    private fun enableLocation() {
+        if(PermissionsManager.areLocationPermissionsGranted(mContext)) {
+            Timber.e(tag, "Permissions are granted")
+            locationComponent = map?.locationComponent
+            locationComponent?.activateLocationComponent(activity!!.applicationContext)
+
+            //Set location engine interval times
+            locationComponent?.locationEngine?.interval = 5000
+            locationComponent?.locationEngine?.fastestInterval = 1000
+
+            // Set visibility after activation
+            locationComponent?.isLocationComponentEnabled = true
+
+            // Customises the component's camera mode
+            locationComponent?.cameraMode = CameraMode.TRACKING
+            locationComponent?.renderMode = RenderMode.NORMAL
+
+        } else {
+            Timber.e(tag, "Permissions are not granted")
+            permissionsManager = PermissionsManager(this)
+            permissionsManager.requestLocationPermissions(mContext as Activity)
+        }
+    }
+
+    override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
+        Timber.e(tag, "Permissions: $permissionsToExplain")
+        // Present popup message or dialogue
+        val userDialogue = Toast.makeText(mContext,
+                permissionsToExplain!!.joinToString(", ", "", "", -1, "..."),
+                Toast.LENGTH_LONG)
+        userDialogue.show()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+    override fun onPermissionResult(granted: Boolean) {
+        Timber.e(tag, "[onPermissionResult] granted == $granted")
+        if (granted) {
+            enableLocation()
+        } else {
+            // Open a dialogue with the user
+            val userDialogue = Toast.makeText(mContext,
+                    "Please enable your location",
+                    Toast.LENGTH_LONG)
+            userDialogue.show()
+        }
+    }
+
+    @SuppressWarnings("MissingPermission")
     override fun onStart() {
         super.onStart()
         mapView?.onStart()
@@ -119,14 +142,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapView?.onLowMemory()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onDestroyView() {
+        super.onDestroyView()
         mapView?.onDestroy()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-
+        mapView?.onSaveInstanceState(outState)
     }
 
 }

@@ -26,6 +26,14 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import kotlinx.android.synthetic.main.activity_map.*
+import java.text.SimpleDateFormat
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.FeatureCollection
+import com.mapbox.geojson.Geometry
+import com.mapbox.geojson.Point
+import com.google.gson.JsonObject
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import java.util.*
 
 class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
@@ -62,10 +70,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             map?.addMarker(MarkerOptions()
                     .position(LatLng(55.944, -3.188396))
                     .title("University of Edinburgh: George Square"))
-
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
+            //getCoinz()
         }
     }
 
@@ -86,10 +94,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             // Customises the component's camera mode
             locationComponent?.cameraMode = CameraMode.TRACKING
             locationComponent?.renderMode = RenderMode.NORMAL
-
-            if(locationComponent?.lastKnownLocation == null) {
-                Log.d(tag, "Last known location null")
-            }
 
         } else {
             Log.d(tag, "Permissions are not granted")
@@ -121,6 +125,37 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             val userDialogue = Toast.makeText(this, "Please enable your location", Toast.LENGTH_LONG)
             userDialogue.show()
         }
+    }
+
+    private fun getCoinz() {
+        var url = "http://homepages.inf.ed.ac.uk/stg/coinz/" + getDate() + "coinzmap.geojson"
+        var fc = FeatureCollection.fromJson(url)
+        var featureList = fc.features()?.iterator()
+        if (featureList != null) {
+            for(f in featureList) addCoinMarker(f)
+        }
+    }
+
+    private fun addCoinMarker(feature : Feature) {
+        // Get location of the coin
+        var point = feature.geometry() as Point
+        val latLng = LatLng(point.latitude(),point.longitude())
+
+        // Get relevant properties of the coin
+        var coin = feature.properties()
+        val currency = coin!!["currency"].toString()
+        val value = coin!!["value"].toString()
+
+        // Add marker to map
+        map?.addMarker(MarkerOptions()
+                .position(latLng)
+                .title(currency)
+                .snippet(value))
+    }
+
+    private fun getDate(): String {
+        var dateFormat = SimpleDateFormat("yyyy.MM.dd")
+        return dateFormat.format(getDate())
     }
 
     @SuppressWarnings("MissingPermission")
