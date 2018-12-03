@@ -1,9 +1,11 @@
 package com.example.s1623165.coinz
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.media.AsyncPlayer
+import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
@@ -11,6 +13,7 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import com.example.s1623165.coinz.DownloadCompleteRunner.result
 import com.example.s1623165.coinz.R.id.fab
 import com.example.s1623165.coinz.R.id.toolbar
 import com.mapbox.android.core.permissions.PermissionsListener
@@ -32,16 +35,25 @@ import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Geometry
 import com.mapbox.geojson.Point
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import java.io.IOException
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.*
 
 class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     private val tag = "MapActivity"
+    private val preferencesFile = "Wallet"
+
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
     private var locationComponent: LocationComponent? = null
     private lateinit var permissionsManager : PermissionsManager
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -132,19 +144,34 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         var fc = FeatureCollection.fromJson(url)
         var featureList = fc.features()?.iterator()
         if (featureList != null) {
-            for(f in featureList) addCoinMarker(f)
+            for(f in featureList) createCoin(f)
         }
     }
 
-    private fun addCoinMarker(feature : Feature) {
+    private fun createCoin(feature : Feature) {
         // Get location of the coin
         var point = feature.geometry() as Point
         val latLng = LatLng(point.latitude(),point.longitude())
 
         // Get relevant properties of the coin
-        var coin = feature.properties()
-        val currency = coin!!["currency"].toString()
-        val value = coin!!["value"].toString()
+        var coinJson = feature.properties()
+        val currency = coinJson!!["currency"].toString()
+        val value = coinJson!!["value"].toString()
+        val id = coinJson!!["id"].toString()
+
+        // Create new instance of coin
+        val coin = Coin.Builder()
+                .setID(id)
+                .setCurrency(currency)
+                .setValue(value.toDouble())
+                .setLocation(latLng)
+                .build()
+
+        // Save coin in wallet
+        val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
+        var editor = settings.edit()
+        editor.putString(id, coin.toString())
+        editor.apply()
 
         // Add marker to map
         map?.addMarker(MarkerOptions()
@@ -153,7 +180,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 .snippet(value))
     }
 
-    private fun getDate(): String {
+    private fun getDate() : String {
         var dateFormat = SimpleDateFormat("yyyy.MM.dd")
         return dateFormat.format(getDate())
     }
@@ -192,5 +219,47 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         mapView?.onSaveInstanceState(outState)
+    }
+}
+
+interface DownloadCompleteListener {
+    fun downloadComplete(result: String)
+}
+
+object DownloadCompleteRunner : DownloadCompleteListener {
+    var result : String? = null
+    override fun downloadComplete(result: String) {
+        this.result = result
+    }
+}
+
+class DownloadFileTask(private val caller : DownloadCompleteListener) :
+        AsyncTask<String, Void, String>() {
+    override fun doInBackground(vararg urls: String?): String = try {
+        loadFileFromNetwork(urls[0]!!)
+    } catch (e : IOException) {
+        "Unable to load content. Check your network connection"
+    }
+
+    private fun loadFileFromNetwork(urlString : String) : String {
+        val stream : InputStream = downloadUrl(urlString)
+        return stream.reader().use { it.encoding }
+    }
+
+    @Throws(IOException::class)
+    private fun downloadUrl(urlString: String): InputStream {
+        val url = URL(urlString)
+        val conn = url.openConnection() as HttpURLConnection
+        conn.readTimeout = 10000 // milliseconds
+        conn.connectTimeout = 15000 // milliseconds
+        conn.requestMethod = "GET"
+        conn.doInput = true
+        conn.connect() // Starts the query
+        return conn.inputStream
+    }
+
+    override fun onPostExecute(result: String) {
+        super.onPostExecute(result)
+        caller.downloadComplete(result)
     }
 }

@@ -50,7 +50,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
 
     override fun onMapReady(mapboxMap: MapboxMap?) {
         if(mapboxMap == null) {
-            Timber.e(tag, "[onMapReady] mapboxMap is null")
+            Timber.e("[onMapReady] mapboxMap is null")
         } else {
             //set the map
             map = mapboxMap
@@ -68,7 +68,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
     @SuppressLint("MissingPermission")
     private fun enableLocation() {
         if(PermissionsManager.areLocationPermissionsGranted(mContext)) {
-            Timber.e(tag, "Permissions are granted")
+            Timber.e("Permissions are granted")
             locationComponent = map?.locationComponent
             locationComponent?.activateLocationComponent(activity!!.applicationContext)
 
@@ -84,14 +84,14 @@ class MapFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
             locationComponent?.renderMode = RenderMode.NORMAL
 
         } else {
-            Timber.e(tag, "Permissions are not granted")
+            Timber.e("Permissions are not granted")
             permissionsManager = PermissionsManager(this)
             permissionsManager.requestLocationPermissions(mContext as Activity)
         }
     }
 
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
-        Timber.e(tag, "Permissions: $permissionsToExplain")
+        Timber.e( "Permissions: $permissionsToExplain")
         // Present popup message or dialogue
         val userDialogue = Toast.makeText(mContext,
                 permissionsToExplain!!.joinToString(", ", "", "", -1, "..."),
@@ -104,7 +104,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, PermissionsListener {
     }
 
     override fun onPermissionResult(granted: Boolean) {
-        Timber.e(tag, "[onPermissionResult] granted == $granted")
+        Timber.e( "[onPermissionResult] granted == $granted")
         if (granted) {
             enableLocation()
         } else {

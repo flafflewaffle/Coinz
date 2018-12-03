@@ -1,0 +1,60 @@
+package com.example.s1623165.coinz;
+
+import com.google.gson.Gson;
+import com.mapbox.mapboxsdk.geometry.LatLng;
+
+public final class Coin {
+
+    private String id;
+    private String currency;
+    private double value;
+    private LatLng location;
+
+    public Coin(Builder builder) {
+        this.id = builder.id;
+        this.currency = builder.currency;
+        this.value = builder.value;
+        this.location = builder.location;
+    }
+
+    public static class Builder {
+        private String id;
+        private String currency;
+        private double value;
+        private LatLng location;
+
+        public Coin build() {
+            return new Coin(this);
+        }
+
+        public Builder setID(String ID) {
+            this.id = ID;
+            return this;
+        }
+        public Builder setCurrency(String cur) {
+            this.currency = cur;
+            return this;
+        }
+        public Builder setValue(double val) {
+            this.value = val;
+            return this;
+        }
+        public Builder setLocation(LatLng loc) {
+            this.location = loc;
+            return this;
+        }
+    }
+
+    public String toString() {
+        Gson gson  = new Gson();
+        String json = gson.toJson(this);
+        return json;
+    }
+
+    public double distanceTo(LatLng locOther) {
+        //TODO work out distance function with other latlng
+        return 0.0;
+    }
+}
+
+
