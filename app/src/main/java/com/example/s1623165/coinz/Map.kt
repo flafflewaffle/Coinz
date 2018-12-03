@@ -46,17 +46,18 @@ import java.util.*
 class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     private val tag = "MapActivity"
-    private val preferencesFile = "Wallet"
 
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
     private var locationComponent: LocationComponent? = null
+
+    private lateinit var geoJsonString: String
+    private lateinit var lastDownloadDate : String
     private lateinit var permissionsManager : PermissionsManager
 
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         setContentView(R.layout.activity_map)
@@ -65,6 +66,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         mapView = findViewById(R.id.mapview)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
+    }
+
+    @SuppressWarnings("MissingPermission")
+    override fun onStart() {
+        super.onStart()
+        val settings = getSharedPreferences("wallet", Context.MODE_PRIVATE)
+        lastDownloadDate = settings.getString("lastDownloadDate", "")
+        mapView?.onStart()
     }
 
     fun menu() {
@@ -85,7 +94,20 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
-            //getCoinz()
+            if(lastDownloadDate.equals(getDate())) {
+                Log.d(tag, "Coinz for " + getDate() +" downloaded previously.")
+            }
+            else {
+                val url = "http://homepages.inf.ed.ac.uk/stg/coinz/2018/12/02/coinzmap.geojson"
+                //val url = "http://homepages.inf.ed.ac.uk/stg/coinz/ + getDate() + /coinzmap.geojson"
+                geoJsonString = DownloadFileTask(DownloadCompleteRunner).execute(url).get()
+                val settings = getSharedPreferences("wallet", Context.MODE_PRIVATE)
+                val editor = settings.edit()
+                editor.putString("lastDownloadDate", getDate())
+                editor.apply()
+                //getCoinz()
+            }
+
         }
     }
 
@@ -140,9 +162,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     }
 
     private fun getCoinz() {
-        var url = "http://homepages.inf.ed.ac.uk/stg/coinz/" + getDate() + "coinzmap.geojson"
-        var fc = FeatureCollection.fromJson(url)
-        var featureList = fc.features()?.iterator()
+        val fc = FeatureCollection.fromJson(geoJsonString)
+        val featureList = fc.features()?.iterator()
         if (featureList != null) {
             for(f in featureList) createCoin(f)
         }
@@ -150,11 +171,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     private fun createCoin(feature : Feature) {
         // Get location of the coin
-        var point = feature.geometry() as Point
+        val point = feature.geometry() as Point
         val latLng = LatLng(point.latitude(),point.longitude())
 
         // Get relevant properties of the coin
-        var coinJson = feature.properties()
+        val coinJson = feature.properties()
         val currency = coinJson!!["currency"].toString()
         val value = coinJson!!["value"].toString()
         val id = coinJson!!["id"].toString()
@@ -168,8 +189,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 .build()
 
         // Save coin in wallet
-        val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
-        var editor = settings.edit()
+        val settings = getSharedPreferences("wallet", Context.MODE_PRIVATE)
+        val editor = settings.edit()
         editor.putString(id, coin.toString())
         editor.apply()
 
@@ -181,14 +202,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     }
 
     private fun getDate() : String {
-        var dateFormat = SimpleDateFormat("yyyy.MM.dd")
+        val dateFormat = SimpleDateFormat("yyyy/MM/dd")
         return dateFormat.format(getDate())
-    }
-
-    @SuppressWarnings("MissingPermission")
-    override fun onStart() {
-        super.onStart()
-        mapView?.onStart()
     }
 
     override fun onResume() {

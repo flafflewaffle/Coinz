@@ -17,6 +17,22 @@ public final class Coin {
         this.location = builder.location;
     }
 
+    public String getId() {
+        return this.id;
+    }
+
+    public double getValue() {
+        return this.value;
+    }
+
+    public String getCurrency() {
+        return this.currency;
+    }
+
+    public LatLng getLocation() {
+        return this.location;
+    }
+
     public static class Builder {
         private String id;
         private String currency;
