@@ -258,7 +258,7 @@ class DownloadFileTask(private val caller : DownloadCompleteListener) :
 
     private fun loadFileFromNetwork(urlString : String) : String {
         val stream : InputStream = downloadUrl(urlString)
-        return stream.reader().use { it.encoding }
+        return stream.reader().use { it.readText() }
     }
 
     @Throws(IOException::class)
