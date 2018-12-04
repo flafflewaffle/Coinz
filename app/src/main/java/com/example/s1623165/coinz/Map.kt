@@ -80,20 +80,21 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
         val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         lastDownloadDate = settings.getString("lastDownloadDate", "")
-        currentDate = getDate()
+        currentDate = "2018/11/03"
         if(lastDownloadDate.equals(currentDate)) {
             geoJsonString = settings.getString("geoJson","")
             Log.d(tag, "Coinz for " + currentDate +" downloaded previously.")
         }
         else {
-            //val url = "http://homepages.inf.ed.ac.uk/stg/coinz/2018/12/02/coinzmap.geojson"
             val url = "http://homepages.inf.ed.ac.uk/stg/coinz/" + currentDate + "/coinzmap.geojson"
             Log.d(tag, "Download from " + url)
+
             geoJsonString = DownloadFileTask(DownloadCompleteRunner).execute(url).get()
             if(geoJsonString.equals("Unable to load content. Check your network connection")) {
                 Log.d(tag, "Check network connection, new map not downloaded")
             }
             else {
+                clearMapCoins()
                 val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
                 val editor = settings.edit()
                 editor.putString("lastDownloadDate", currentDate)
@@ -121,6 +122,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             //set the map
             map = mapboxMap
             //Test marker
+
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
@@ -231,14 +233,23 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         val coinz = settings.all
         for (k in coinz.keys) {
             val coinJson = coinz.get(k) as String
-            Log.d(tag, coinJson)
             val gson = Gson()
             val coin = gson.fromJson(coinJson, Coin::class.java)
+
+            Log.d(tag,coin.currency+coin.value)
+
             map?.addMarker(MarkerOptions()
                 .position(coin.location)
                 .title(coin.currency)
                 .snippet(coin.value.toString()))
         }
+    }
+
+    private fun clearMapCoins() {
+        val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
+        val editor = settings.edit()
+        editor.clear()
+        editor.apply()
     }
 
     private fun getDate() : String {
