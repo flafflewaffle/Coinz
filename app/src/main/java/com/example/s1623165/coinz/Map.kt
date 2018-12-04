@@ -14,8 +14,8 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import com.example.s1623165.coinz.DownloadCompleteRunner.result
-import com.example.s1623165.coinz.R.id.fab
-import com.example.s1623165.coinz.R.id.toolbar
+import com.example.s1623165.coinz.R.id.*
+import com.google.gson.Gson
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
@@ -37,6 +37,8 @@ import com.mapbox.geojson.Point
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -46,6 +48,7 @@ import java.util.*
 class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     private val tag = "MapActivity"
+    private val prefsFile = "MyPrefsFile"
 
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
@@ -53,6 +56,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     private lateinit var geoJsonString: String
     private lateinit var lastDownloadDate : String
+    private lateinit var currentDate : String
     private lateinit var permissionsManager : PermissionsManager
 
 
@@ -71,9 +75,25 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     @SuppressWarnings("MissingPermission")
     override fun onStart() {
         super.onStart()
-        val settings = getSharedPreferences("wallet", Context.MODE_PRIVATE)
+        val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         lastDownloadDate = settings.getString("lastDownloadDate", "")
-        mapView?.onStart()
+        currentDate = getDate()
+        if(lastDownloadDate.equals(currentDate)) {
+            geoJsonString = settings.getString("geoJson","")
+            Log.d(tag, "Coinz for " + currentDate +" downloaded previously.")
+        }
+        else {
+            //val url = "http://homepages.inf.ed.ac.uk/stg/coinz/2018/12/02/coinzmap.geojson"
+            val url = "http://homepages.inf.ed.ac.uk/stg/coinz/" + currentDate + "/coinzmap.geojson"
+            geoJsonString = DownloadFileTask(DownloadCompleteRunner).execute(url).get()
+            val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
+            val editor = settings.edit()
+            editor.putString("lastDownloadDate", currentDate)
+            editor.putString("geoJson", geoJsonString)
+            editor.apply()
+            //setExchangeRates()
+            //getCoinz()
+        }
     }
 
     fun menu() {
@@ -94,20 +114,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
-            if(lastDownloadDate.equals(getDate())) {
-                Log.d(tag, "Coinz for " + getDate() +" downloaded previously.")
-            }
-            else {
-                val url = "http://homepages.inf.ed.ac.uk/stg/coinz/2018/12/02/coinzmap.geojson"
-                //val url = "http://homepages.inf.ed.ac.uk/stg/coinz/ + getDate() + /coinzmap.geojson"
-                geoJsonString = DownloadFileTask(DownloadCompleteRunner).execute(url).get()
-                val settings = getSharedPreferences("wallet", Context.MODE_PRIVATE)
-                val editor = settings.edit()
-                editor.putString("lastDownloadDate", getDate())
-                editor.apply()
-                //getCoinz()
-            }
-
+            //initialiseCoinMarkers()
         }
     }
 
@@ -161,6 +168,18 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         }
     }
 
+    private fun setExchangeRates() {
+        val json = JSONObject(geoJsonString)
+        val rates = json.getJSONObject("rates")
+        val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
+        val editor = settings.edit()
+        editor.putString("SHIL", rates["SHIL"].toString())
+        editor.putString("DOLR", rates["DOLR"].toString())
+        editor.putString("QUID", rates["QUID"].toString())
+        editor.putString("PENY", rates["PENY"].toString())
+        editor.apply()
+    }
+
     private fun getCoinz() {
         val fc = FeatureCollection.fromJson(geoJsonString)
         val featureList = fc.features()?.iterator()
@@ -189,21 +208,29 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 .build()
 
         // Save coin in wallet
-        val settings = getSharedPreferences("wallet", Context.MODE_PRIVATE)
+        val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
         val editor = settings.edit()
         editor.putString(id, coin.toString())
         editor.apply()
+    }
 
-        // Add marker to map
-        map?.addMarker(MarkerOptions()
-                .position(latLng)
-                .title(currency)
-                .snippet(value))
+    private fun initialiseCoinMarkers() {
+        val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
+        val coinz = settings.all
+        for (k in coinz.keys) {
+            val coinJson = coinz.get(k) as String
+            val gson = Gson()
+            val coin = gson.fromJson(coinJson, Coin::class.java)
+            map?.addMarker(MarkerOptions()
+                .position(coin.location)
+                .title(coin.currency)
+                .snippet(coin.value.toString()))
+        }
     }
 
     private fun getDate() : String {
         val dateFormat = SimpleDateFormat("yyyy/MM/dd")
-        return dateFormat.format(getDate())
+        return dateFormat.format(Date())
     }
 
     override fun onResume() {
@@ -237,44 +264,3 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     }
 }
 
-interface DownloadCompleteListener {
-    fun downloadComplete(result: String)
-}
-
-object DownloadCompleteRunner : DownloadCompleteListener {
-    var result : String? = null
-    override fun downloadComplete(result: String) {
-        this.result = result
-    }
-}
-
-class DownloadFileTask(private val caller : DownloadCompleteListener) :
-        AsyncTask<String, Void, String>() {
-    override fun doInBackground(vararg urls: String?): String = try {
-        loadFileFromNetwork(urls[0]!!)
-    } catch (e : IOException) {
-        "Unable to load content. Check your network connection"
-    }
-
-    private fun loadFileFromNetwork(urlString : String) : String {
-        val stream : InputStream = downloadUrl(urlString)
-        return stream.reader().use { it.readText() }
-    }
-
-    @Throws(IOException::class)
-    private fun downloadUrl(urlString: String): InputStream {
-        val url = URL(urlString)
-        val conn = url.openConnection() as HttpURLConnection
-        conn.readTimeout = 10000 // milliseconds
-        conn.connectTimeout = 15000 // milliseconds
-        conn.requestMethod = "GET"
-        conn.doInput = true
-        conn.connect() // Starts the query
-        return conn.inputStream
-    }
-
-    override fun onPostExecute(result: String) {
-        super.onPostExecute(result)
-        caller.downloadComplete(result)
-    }
-}
