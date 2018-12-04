@@ -44,6 +44,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
+import kotlin.math.roundToLong
 
 class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
@@ -120,10 +121,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             //set the map
             map = mapboxMap
             //Test marker
-            map?.addMarker(MarkerOptions()
-                    .position(LatLng(55.944, -3.188396))
-                    .title("University of Edinburgh: George Square")
-                    .snippet("The University of Edinburgh was founded a long time ago."))
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
@@ -210,7 +207,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         // Get relevant properties of the coin
         val coinJson = feature.properties()
         val currency = coinJson!!["currency"].asString
-        val value = coinJson!!["value"].asLong
+        val value = coinJson!!["value"].asDouble
         val id = coinJson!!["id"].asString
 
         // Create new instance of coin
