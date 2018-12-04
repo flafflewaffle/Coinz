@@ -1,6 +1,7 @@
 package com.example.s1623165.coinz
 
 import android.os.AsyncTask
+import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -45,6 +46,7 @@ class DownloadFileTask(private val caller : DownloadCompleteListener) :
     }
 
     override fun onPostExecute(result: String) {
+        Log.d("DownloadFileTask", "Download successful")
         super.onPostExecute(result)
         caller.downloadComplete(result)
     }

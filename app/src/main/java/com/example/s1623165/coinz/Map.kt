@@ -75,6 +75,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     @SuppressWarnings("MissingPermission")
     override fun onStart() {
         super.onStart()
+        mapView?.onStart()
+
         val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         lastDownloadDate = settings.getString("lastDownloadDate", "")
         currentDate = getDate()
@@ -85,15 +87,20 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         else {
             //val url = "http://homepages.inf.ed.ac.uk/stg/coinz/2018/12/02/coinzmap.geojson"
             val url = "http://homepages.inf.ed.ac.uk/stg/coinz/" + currentDate + "/coinzmap.geojson"
+            Log.d(tag, "Download from " + url)
             geoJsonString = DownloadFileTask(DownloadCompleteRunner).execute(url).get()
             val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
             val editor = settings.edit()
             editor.putString("lastDownloadDate", currentDate)
             editor.putString("geoJson", geoJsonString)
             editor.apply()
-            //setExchangeRates()
-            //getCoinz()
+            setExchangeRates()
+            getCoinz()
         }
+
+        Log.d(tag, "lastDownloadDate: " + lastDownloadDate)
+        Log.d(tag, "curentDate: " + currentDate)
+        Log.d(tag, geoJsonString)
     }
 
     fun menu() {
@@ -110,11 +117,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             //Test marker
             map?.addMarker(MarkerOptions()
                     .position(LatLng(55.944, -3.188396))
-                    .title("University of Edinburgh: George Square"))
+                    .title("University of Edinburgh: George Square")
+                    .snippet("The University of Edinburgh was founded a long time ago."))
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
-            //initialiseCoinMarkers()
+            initialiseCoinMarkers()
         }
     }
 
@@ -181,6 +189,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     }
 
     private fun getCoinz() {
+        Log.d(tag, "Creating Coins from GeoJson")
         val fc = FeatureCollection.fromJson(geoJsonString)
         val featureList = fc.features()?.iterator()
         if (featureList != null) {
@@ -215,6 +224,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     }
 
     private fun initialiseCoinMarkers() {
+        Log.d(tag, "Inititalising Coin Markers")
         val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
         val coinz = settings.all
         for (k in coinz.keys) {
