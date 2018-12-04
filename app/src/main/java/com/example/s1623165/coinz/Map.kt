@@ -89,13 +89,18 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             val url = "http://homepages.inf.ed.ac.uk/stg/coinz/" + currentDate + "/coinzmap.geojson"
             Log.d(tag, "Download from " + url)
             geoJsonString = DownloadFileTask(DownloadCompleteRunner).execute(url).get()
-            val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
-            val editor = settings.edit()
-            editor.putString("lastDownloadDate", currentDate)
-            editor.putString("geoJson", geoJsonString)
-            editor.apply()
-            setExchangeRates()
-            getCoinz()
+            if(geoJsonString.equals("Unable to load content. Check your network connection")) {
+                Log.d(tag, "Check network connection, new map not downloaded")
+            }
+            else {
+                val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
+                val editor = settings.edit()
+                editor.putString("lastDownloadDate", currentDate)
+                editor.putString("geoJson", geoJsonString)
+                editor.apply()
+                setExchangeRates()
+                getCoinz()
+            }
         }
 
         Log.d(tag, "lastDownloadDate: " + lastDownloadDate)
@@ -204,15 +209,15 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
         // Get relevant properties of the coin
         val coinJson = feature.properties()
-        val currency = coinJson!!["currency"].toString()
-        val value = coinJson!!["value"].toString()
-        val id = coinJson!!["id"].toString()
+        val currency = coinJson!!["currency"].asString
+        val value = coinJson!!["value"].asLong
+        val id = coinJson!!["id"].asString
 
         // Create new instance of coin
         val coin = Coin.Builder()
                 .setID(id)
                 .setCurrency(currency)
-                .setValue(value.toDouble())
+                .setValue(value)
                 .setLocation(latLng)
                 .build()
 
@@ -229,6 +234,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         val coinz = settings.all
         for (k in coinz.keys) {
             val coinJson = coinz.get(k) as String
+            Log.d(tag, coinJson)
             val gson = Gson()
             val coin = gson.fromJson(coinJson, Coin::class.java)
             map?.addMarker(MarkerOptions()

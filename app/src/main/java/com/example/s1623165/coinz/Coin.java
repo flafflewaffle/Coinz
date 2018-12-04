@@ -7,7 +7,7 @@ public final class Coin {
 
     private String id;
     private String currency;
-    private double value;
+    private long value;
     private LatLng location;
 
     public Coin(Builder builder) {
@@ -21,7 +21,7 @@ public final class Coin {
         return this.id;
     }
 
-    public double getValue() {
+    public long getValue() {
         return this.value;
     }
 
@@ -36,7 +36,7 @@ public final class Coin {
     public static class Builder {
         private String id;
         private String currency;
-        private double value;
+        private long value;
         private LatLng location;
 
         public Coin build() {
@@ -51,7 +51,7 @@ public final class Coin {
             this.currency = cur;
             return this;
         }
-        public Builder setValue(double val) {
+        public Builder setValue(long val) {
             this.value = val;
             return this;
         }
