@@ -1,5 +1,7 @@
 package com.example.s1623165.coinz;
 
+import android.location.Location;
+
 import com.google.gson.Gson;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
@@ -63,13 +65,17 @@ public final class Coin {
 
     public String toString() {
         Gson gson  = new Gson();
-        String json = gson.toJson(this);
-        return json;
+        return gson.toJson(this);
     }
 
-    public double distanceTo(LatLng locOther) {
-        //TODO work out distance function with other latlng
-        return 0.0;
+    public float distanceTo(LatLng locOther) {
+        float result[] = new float[1];
+        Location.distanceBetween(this.location.getLatitude(),
+                this.location.getLongitude(),
+                locOther.getLatitude(),
+                locOther.getLongitude(),
+                result);
+        return result[0];
     }
 }
 

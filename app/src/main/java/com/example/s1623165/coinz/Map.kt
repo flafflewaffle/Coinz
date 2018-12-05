@@ -2,12 +2,14 @@ package com.example.s1623165.coinz
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.location.Location
 import android.media.AsyncPlayer
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.widget.Snackbar
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -36,6 +38,8 @@ import com.mapbox.geojson.Geometry
 import com.mapbox.geojson.Point
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.mapbox.mapboxsdk.annotations.Icon
+import com.mapbox.mapboxsdk.annotations.Marker
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import org.json.JSONArray
 import org.json.JSONObject
@@ -44,6 +48,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.roundToLong
 
 class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
@@ -54,12 +59,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
     private var locationComponent: LocationComponent? = null
+    private var coinMarkerIcons : HashMap<String, Icon> = HashMap()
 
     private lateinit var geoJsonString: String
     private lateinit var lastDownloadDate : String
     private lateinit var currentDate : String
     private lateinit var permissionsManager : PermissionsManager
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,6 +76,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         mapView = findViewById(R.id.mapview)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
+        currentDate = getDate()
     }
 
     @SuppressWarnings("MissingPermission")
@@ -80,13 +86,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
         val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         lastDownloadDate = settings.getString("lastDownloadDate", "")
-        currentDate = "2018/11/03"
         if(lastDownloadDate.equals(currentDate)) {
             geoJsonString = settings.getString("geoJson","")
             Log.d(tag, "Coinz for " + currentDate +" downloaded previously.")
         }
         else {
-            val url = "http://homepages.inf.ed.ac.uk/stg/coinz/" + currentDate + "/coinzmap.geojson"
+            val url = "http://homepages.inf.ed.ac.uk/stg/coinz/$currentDate/coinzmap.geojson"
             Log.d(tag, "Download from " + url)
 
             geoJsonString = DownloadFileTask(DownloadCompleteRunner).execute(url).get()
@@ -101,10 +106,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 editor.putString("geoJson", geoJsonString)
                 editor.apply()
                 setExchangeRates()
-                getCoinz()
+                setCoinz()
+                setIcons()
             }
         }
-
+        
+        showDialogueExchangeRates()
         Log.d(tag, "lastDownloadDate: " + lastDownloadDate)
         Log.d(tag, "curentDate: " + currentDate)
         Log.d(tag, geoJsonString)
@@ -121,8 +128,21 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         } else {
             //set the map
             map = mapboxMap
-            //Test marker
-
+            map?.setOnMarkerClickListener { marker ->
+                val coinID = marker.snippet
+                val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
+                val coinJson = settings.getString(coinID,"")
+                val gson = Gson()
+                val coin = gson.fromJson(coinJson, Coin::class.java)
+                if(inRange(coin)) {
+                    showDialogueCoinInRange(coin, marker)
+                    true
+                }
+                else {
+                    showDialogueNotInRange(coin)
+                    true
+                }
+            }
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
@@ -192,13 +212,67 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         editor.apply()
     }
 
-    private fun getCoinz() {
+    private fun setCoinz() {
         Log.d(tag, "Creating Coins from GeoJson")
         val fc = FeatureCollection.fromJson(geoJsonString)
         val featureList = fc.features()?.iterator()
         if (featureList != null) {
             for(f in featureList) createCoin(f)
         }
+    }
+
+    private fun setIcons() {
+        val icon = IconFactory.getInstance(this)
+        coinMarkerIcons.put("DOLR", icon.fromResource(R.drawable.mapbox_marker_icon_default))
+        coinMarkerIcons.put("SHIL", icon.fromResource(R.drawable.mapbox_marker_icon_default))
+        coinMarkerIcons.put("QUID", icon.fromResource(R.drawable.mapbox_marker_icon_default))
+        coinMarkerIcons.put("PENY", icon.fromResource(R.drawable.mapbox_marker_icon_default))
+    }
+
+    private fun showDialogueExchangeRates() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Exchange Rates")
+        builder.setMessage(getExchangeRates())
+        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.show()
+    }
+
+    private fun showDialogueNotInRange(coin : Coin) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Coin Not In Range")
+        builder.setMessage("Coin: ${coin.currency} \nValue: ${coin.value}")
+        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.show()
+    }
+
+    private fun showDialogueCoinInRange(coin : Coin, marker : Marker) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Would you like to pick up this coin")
+        builder.setMessage("Coin: ${coin.currency} \nValue: ${coin.value}")
+        builder.setPositiveButton("Yes") { dialog: DialogInterface?, which: Int ->
+            val settingsWallet = getSharedPreferences("wallet", Context.MODE_PRIVATE)
+            val editorWallet = settingsWallet.edit()
+            editorWallet.putString(coin.id, coin.toString())
+            editorWallet.apply()
+
+            val settingsMap = getSharedPreferences("map", Context.MODE_PRIVATE)
+            val editorMap = settingsMap.edit()
+            editorMap.remove(coin.id)
+            editorMap.apply()
+            map?.removeMarker(marker)
+        }
+        builder.setNegativeButton("No", {dialog: DialogInterface?, which: Int -> })
+        builder.show()
+    }
+
+    @SuppressWarnings("MissingPermission")
+    private fun inRange(coin : Coin) : Boolean {
+        val curLat = map?.locationComponent?.lastKnownLocation?.latitude!!
+        val curLon = map?.locationComponent?.lastKnownLocation?.longitude!!
+        val curLocation = LatLng(curLat, curLon)
+        val distance = coin.distanceTo(curLocation)
+        Log.d(tag, "Distance between coin and current location: $distance")
+        return (distance <= 50.0)
     }
 
     private fun createCoin(feature : Feature) {
@@ -235,13 +309,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             val coinJson = coinz.get(k) as String
             val gson = Gson()
             val coin = gson.fromJson(coinJson, Coin::class.java)
-
-            Log.d(tag,coin.currency+coin.value)
-
             map?.addMarker(MarkerOptions()
                 .position(coin.location)
                 .title(coin.currency)
-                .snippet(coin.value.toString()))
+                .snippet(coin.id)
+                .icon(coinMarkerIcons[coin.currency]))
         }
     }
 
@@ -255,6 +327,17 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private fun getDate() : String {
         val dateFormat = SimpleDateFormat("yyyy/MM/dd")
         return dateFormat.format(Date())
+    }
+
+    private fun getExchangeRates() : String {
+        val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
+
+        val quid = settings.getString("QUID","")
+        val dolr = settings.getString("DOLR","")
+        val peny = settings.getString("PENY","")
+        val shil = settings.getString("SHIL","")
+
+        return "QUID: $quid \nDOLR: $dolr \nPENY: $peny \nSHIL: $shil"
     }
 
     override fun onResume() {

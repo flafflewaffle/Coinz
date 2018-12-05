@@ -72,9 +72,6 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_wallet -> {
                 WalletFragment()
             }
-//            R.id.nav_map -> {
-//                MapFragment()
-//            }
             R.id.nav_bank -> {
                 BankFragment()
             }

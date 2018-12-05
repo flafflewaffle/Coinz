@@ -8,10 +8,6 @@
             android:id="@+id/nav_wallet"
             android:icon="@drawable/ic_menu_manage"
             android:title="Wallet" />
-        <!--<item-->
-            <!--android:id="@+id/nav_map"-->
-            <!--android:icon="@drawable/map_marker_light"-->
-            <!--android:title="Map" />-->
         <item
             android:id="@+id/nav_bank"
             android:icon="@drawable/ic_menu_gallery"
