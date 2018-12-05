@@ -68,6 +68,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        //initialise mapview and current date
         super.onCreate(savedInstanceState)
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         setContentView(R.layout.activity_map)
@@ -84,6 +85,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         super.onStart()
         mapView?.onStart()
 
+        //if the coinz map has already been downloaded, do not attempt again
         val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         lastDownloadDate = settings.getString("lastDownloadDate", "")
         if(lastDownloadDate.equals(currentDate)) {
@@ -94,11 +96,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             val url = "http://homepages.inf.ed.ac.uk/stg/coinz/$currentDate/coinzmap.geojson"
             Log.d(tag, "Download from " + url)
 
+            // if the download file is valid, save it, otherwise present a dialogue to check network connection
             geoJsonString = DownloadFileTask(DownloadCompleteRunner).execute(url).get()
             if(geoJsonString.equals("Unable to load content. Check your network connection")) {
-                Log.d(tag, "Check network connection, new map not downloaded")
+                showDialogueBadNetworkConnection()
             }
             else {
+                //clear map of previous coins and save the geojson
+                //update the last download date and set coins, icons and exchange rates
                 clearMapCoins()
                 val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
                 val editor = settings.edit()
@@ -110,7 +115,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 setIcons()
             }
         }
-        
+
+        //always log and present exchange rates on start
         showDialogueExchangeRates()
         Log.d(tag, "lastDownloadDate: " + lastDownloadDate)
         Log.d(tag, "curentDate: " + currentDate)
@@ -128,6 +134,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         } else {
             //set the map
             map = mapboxMap
+            // present relevant dialogues if the coin in question is in range or not
             map?.setOnMarkerClickListener { marker ->
                 val coinID = marker.snippet
                 val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
@@ -143,6 +150,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                     true
                 }
             }
+            // enable location/map settings/coin markers
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
@@ -151,6 +159,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     }
 
     @SuppressLint("MissingPermission")
+    // enables the location using location component
     private fun enableLocation() {
         if(PermissionsManager.areLocationPermissionsGranted(this)) {
             Log.d(tag, "Permissions are granted")
@@ -200,6 +209,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         }
     }
 
+    // read and store exchange rates from the geojson string
     private fun setExchangeRates() {
         val json = JSONObject(geoJsonString)
         val rates = json.getJSONObject("rates")
@@ -212,6 +222,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         editor.apply()
     }
 
+    // create a new coin for each coin listed in the geo json
     private fun setCoinz() {
         Log.d(tag, "Creating Coins from GeoJson")
         val fc = FeatureCollection.fromJson(geoJsonString)
@@ -221,6 +232,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         }
     }
 
+    // set icons in the hashmap for each currency
     private fun setIcons() {
         val icon = IconFactory.getInstance(this)
         coinMarkerIcons.put("DOLR", icon.fromResource(R.drawable.mapbox_marker_icon_default))
@@ -229,7 +241,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         coinMarkerIcons.put("PENY", icon.fromResource(R.drawable.mapbox_marker_icon_default))
     }
 
+    // present an alert dialogue with the formatted exchange rates
     private fun showDialogueExchangeRates() {
+        // alert dialogue does no action except present information on map start
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Exchange Rates")
         builder.setMessage(getExchangeRates())
@@ -237,7 +251,19 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         builder.show()
     }
 
+    // present an alert dialogue if the map was not downloaded due to bad network connection
+    private fun showDialogueBadNetworkConnection() {
+        // alert dialogue does no action except present information on map start
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Unable to connect to network")
+        builder.setMessage("Unable to load today's map, please check your network connection and refresh the app.")
+        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.show()                                                               
+    }
+
+    // present an alert dialogue if the coin is not within range of the user
     private fun showDialogueNotInRange(coin : Coin) {
+        // the alert dialogue does not do anything bt present info about the coin out of range
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Coin Not In Range")
         builder.setMessage("Coin: ${coin.currency} \nValue: ${coin.value}")
@@ -245,16 +271,20 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         builder.show()
     }
 
+    // present an alert dialogue if a coin is within range to the user
     private fun showDialogueCoinInRange(coin : Coin, marker : Marker) {
+        // build alert dialogue with relevant messages
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Would you like to pick up this coin")
         builder.setMessage("Coin: ${coin.currency} \nValue: ${coin.value}")
         builder.setPositiveButton("Yes") { dialog: DialogInterface?, which: Int ->
+            // add coin to wallet
             val settingsWallet = getSharedPreferences("wallet", Context.MODE_PRIVATE)
             val editorWallet = settingsWallet.edit()
             editorWallet.putString(coin.id, coin.toString())
             editorWallet.apply()
 
+            // remove coin from map
             val settingsMap = getSharedPreferences("map", Context.MODE_PRIVATE)
             val editorMap = settingsMap.edit()
             editorMap.remove(coin.id)
@@ -265,16 +295,20 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         builder.show()
     }
 
+    // check if coin is within range to location
     @SuppressWarnings("MissingPermission")
     private fun inRange(coin : Coin) : Boolean {
+        // Get current location (assert non null)
         val curLat = map?.locationComponent?.lastKnownLocation?.latitude!!
         val curLon = map?.locationComponent?.lastKnownLocation?.longitude!!
         val curLocation = LatLng(curLat, curLon)
+        // calculate and return if other coin is within 50m
         val distance = coin.distanceTo(curLocation)
         Log.d(tag, "Distance between coin and current location: $distance")
         return (distance <= 50.0)
     }
 
+    // create coin instance from json and store in shared preference (for map)
     private fun createCoin(feature : Feature) {
         // Get location of the coin
         val point = feature.geometry() as Point
@@ -301,11 +335,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         editor.apply()
     }
 
+    // initialise all coin markers from those stored in shared preferences under 'map'
     private fun initialiseCoinMarkers() {
         Log.d(tag, "Inititalising Coin Markers")
+        // Retrieve all coins as json from sharedpreferences
         val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
         val coinz = settings.all
         for (k in coinz.keys) {
+            // for each coin, add  a marker to the map with the relevant information
             val coinJson = coinz.get(k) as String
             val gson = Gson()
             val coin = gson.fromJson(coinJson, Coin::class.java)
@@ -317,6 +354,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         }
     }
 
+    // clear the map of coins when download a new map
     private fun clearMapCoins() {
         val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
         val editor = settings.edit()
@@ -324,11 +362,13 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         editor.apply()
     }
 
+    // get the date in the correct format
     private fun getDate() : String {
         val dateFormat = SimpleDateFormat("yyyy/MM/dd")
         return dateFormat.format(Date())
     }
 
+    // retrieve a formatted version of all exchange rates
     private fun getExchangeRates() : String {
         val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
 
