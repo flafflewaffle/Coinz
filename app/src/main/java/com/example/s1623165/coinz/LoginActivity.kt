@@ -4,16 +4,19 @@ import android.arch.lifecycle.Transformations.map
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var mAuth : FirebaseAuth
-    private lateinit var username : EditText
+    private lateinit var email : EditText
     private lateinit var password : EditText
     private lateinit var login : Button
     private lateinit var signup : Button
@@ -21,11 +24,17 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-        mAuth = FirebaseAuth.getInstance()
+        setSupportActionBar(toolbar)
         setUpUIViews()
+        mAuth = FirebaseAuth.getInstance()
+        val currentUser = mAuth.currentUser
+        if(currentUser != null) {
+            finish()
+            map()
+        }
 
         login.setOnClickListener { v ->
-            validate(username.text.toString(), password.text.toString())
+            validate(email.text.toString(), password.text.toString())
         }
 
         signup.setOnClickListener{ v ->
@@ -35,27 +44,35 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setUpUIViews() {
-        username = findViewById(R.id.login_username)
+        email = findViewById(R.id.login_email)
         password = findViewById(R.id.login_password)
         login = findViewById(R.id.login_button)
         signup = findViewById(R.id.signUp_button)
     }
 
-    override fun onStart() {
-        super.onStart()
-//        val currentUser = mAuth.currentUser
-//        updateUI(currentUser)
-    }
-
-    private fun validate(userName : String, userPassword : String) {
-        if(username.equals(userName) && password.equals(userPassword))
-        {
-            map()
+    private fun validate(userEmail : String, userPassword : String) {
+        if(userEmail.isEmpty() || userPassword.isEmpty()) {
+            Toast.makeText(this,
+                    "Please enter valid credentials.",
+                    Toast.LENGTH_SHORT)
+                    .show()
         } else {
-          Toast.makeText(this,
-                  "Username or Password is invalid, Please try again.",
-                  Toast.LENGTH_SHORT)
-                  .show()
+
+            mAuth.signInWithEmailAndPassword(userEmail, userPassword)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(this,
+                                    "Login successful",
+                                    Toast.LENGTH_SHORT)
+                                    .show()
+                            map()
+                        } else {
+                            Toast.makeText(this,
+                                    "Login failed, haven't logged in before! Don't forget to sign up!",
+                                    Toast.LENGTH_SHORT)
+                                    .show()
+                        }
+                    }
         }
     }
 
@@ -68,6 +85,5 @@ class LoginActivity : AppCompatActivity() {
         val signupIntent = Intent(this, SignUpActivity::class.java)
         startActivity(signupIntent)
     }
-
 
 }

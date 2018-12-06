@@ -101,8 +101,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     fun map() {
-        val mapIntent = Intent(this, Map::class.java)
-        startActivity(mapIntent)
+        super.onBackPressed()
     }
 
 }

@@ -8,12 +8,12 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlin.math.sign
 
 class SignUpActivity : AppCompatActivity() {
 
     private lateinit var mAuth : FirebaseAuth
-    private lateinit var username : EditText
     private lateinit var password : EditText
     private lateinit var email : EditText
     private lateinit var signup : Button
@@ -22,6 +22,7 @@ class SignUpActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
+        setSupportActionBar(toolbar)
         mAuth = FirebaseAuth.getInstance()
         setUpUIViews()
 
@@ -30,7 +31,6 @@ class SignUpActivity : AppCompatActivity() {
                 //Upload data to database
                 val user_email = email.text.toString().trim()
                 val user_password = password.text.toString().trim()
-                val user_name = username.text.toString().trim()
 
                 mAuth.createUserWithEmailAndPassword(user_email, user_password)
                         .addOnCompleteListener { task ->
@@ -57,10 +57,9 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun validateDetails() : Boolean {
-        val name = username.text.toString()
         val pass = password.text.toString()
         val email = email.text.toString()
-        if(name.isEmpty() || pass.isEmpty() || email.isEmpty()) {
+        if(pass.isEmpty() || email.isEmpty()) {
             Toast.makeText(this,
                     "Please enter valid credentials.",
                     Toast.LENGTH_SHORT)
@@ -71,12 +70,10 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     fun login() {
-        val loginIntent = Intent(this, LoginActivity::class.java)
-        startActivity(loginIntent)
+        super.onBackPressed()
     }
 
     private fun setUpUIViews() {
-        username = findViewById(R.id.signup_username)
         password = findViewById(R.id.signup_password)
         email = findViewById(R.id.signup_email)
         signup = findViewById(R.id.signup_button)
