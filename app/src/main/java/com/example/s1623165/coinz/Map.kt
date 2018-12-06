@@ -12,6 +12,8 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
@@ -78,6 +80,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
         currentDate = getDate()
+        setIcons()
     }
 
     @SuppressWarnings("MissingPermission")
@@ -112,12 +115,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 editor.apply()
                 setExchangeRates()
                 setCoinz()
-                setIcons()
+                showDownloadSuccessful()
             }
         }
 
         //always log and present exchange rates on start
-        showDialogueExchangeRates()
         Log.d(tag, "lastDownloadDate: " + lastDownloadDate)
         Log.d(tag, "curentDate: " + currentDate)
         Log.d(tag, geoJsonString)
@@ -126,6 +128,25 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     fun menu() {
         val menuIntent = Intent(this, MenuActivity::class.java)
         startActivity(menuIntent)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.map_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        when (item.itemId) {
+            R.id.action_exchange -> {
+                showDialogueExchangeRates()
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onMapReady(mapboxMap: MapboxMap?) {
@@ -187,11 +208,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
         Log.d(tag, "Permissions: $permissionsToExplain")
         // Present popup message or dialogue
-        val userDialogue = Snackbar.make(
-                findViewById(R.id.mapCoordinatorLayout),
+        Toast.makeText(this,
                 permissionsToExplain!!.joinToString(", ", "", "", -1, "..."),
-                Snackbar.LENGTH_INDEFINITE)
-        userDialogue.show()
+                Toast.LENGTH_LONG)
+                .show()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -239,6 +259,16 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         coinMarkerIcons.put("SHIL", icon.fromResource(R.drawable.mapbox_marker_icon_default))
         coinMarkerIcons.put("QUID", icon.fromResource(R.drawable.mapbox_marker_icon_default))
         coinMarkerIcons.put("PENY", icon.fromResource(R.drawable.mapbox_marker_icon_default))
+    }
+
+    //present an alert dialogue when a new map is successfully downloaded
+    private fun showDownloadSuccessful() {
+        // alert dialogue does no action except present information on map start
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("New Coin Map Downloaded")
+        builder.setMessage("Today's Exchange Rates\n"+getExchangeRates())
+        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.show()
     }
 
     // present an alert dialogue with the formatted exchange rates
