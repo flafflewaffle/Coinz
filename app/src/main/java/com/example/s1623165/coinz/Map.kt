@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.location.Location
 import android.media.AsyncPlayer
 import android.os.AsyncTask
@@ -265,10 +266,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     // set icons in the hashmap for each currency
     private fun setIcons() {
         val icon = IconFactory.getInstance(this)
-        coinMarkerIcons.put("DOLR", icon.fromResource(R.drawable.mapbox_marker_icon_default))
-        coinMarkerIcons.put("SHIL", icon.fromResource(R.drawable.mapbox_marker_icon_default))
-        coinMarkerIcons.put("QUID", icon.fromResource(R.drawable.mapbox_marker_icon_default))
-        coinMarkerIcons.put("PENY", icon.fromResource(R.drawable.mapbox_marker_icon_default))
+        coinMarkerIcons.put("DOLR", icon.fromBitmap(BitmapFactory.decodeResource(resources, R.drawable.ic_map_marker_green_24dp)))
+        coinMarkerIcons.put("SHIL", icon.fromBitmap(BitmapFactory.decodeResource(resources, R.drawable.ic_map_marker_blue_24dp)))
+        coinMarkerIcons.put("QUID", icon.fromBitmap(BitmapFactory.decodeResource(resources, R.drawable.ic_map_marker_red_24dp)))
+        coinMarkerIcons.put("PENY", icon.fromBitmap(BitmapFactory.decodeResource(resources, R.drawable.ic_map_marker_yellow_24dp)))
     }
 
     //present an alert dialogue when a new map is successfully downloaded
