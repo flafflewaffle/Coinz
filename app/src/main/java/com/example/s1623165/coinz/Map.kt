@@ -319,18 +319,35 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         builder.setMessage("Coin: ${coin.currency} \nValue: ${coin.value}")
         builder.setPositiveButton("Yes") { dialog: DialogInterface?, which: Int ->
             // add coin to wallet
-//            db.collection("Users")
-//                .document(mAuth.uid!!)
-//                .collection("Wallet")
-//                .document(coin.id)
-//                .set(coin.toString())
+            Log.d(tag, "Adding coin to wallet")
+            val idCoinMap = HashMap<String, Any>()
+            idCoinMap.put(coin.id, coin.toString())
 
-            // remove coin from map
-            val settingsMap = getSharedPreferences("map", Context.MODE_PRIVATE)
-            val editorMap = settingsMap.edit()
-            editorMap.remove(coin.id)
-            editorMap.apply()
-            map?.removeMarker(marker)
+            db.collection("Users")
+                .document(mAuth.uid!!)
+                .collection("User Information")
+                .document("Wallet")
+                .set(idCoinMap)
+                    .addOnSuccessListener { _ ->
+                        Toast.makeText(this,
+                                "Coin collected",
+                                Toast.LENGTH_SHORT)
+                                .show()
+
+                        // remove coin from map
+                        val settingsMap = getSharedPreferences("map", Context.MODE_PRIVATE)
+                        val editorMap = settingsMap.edit()
+                        editorMap.remove(coin.id)
+                        editorMap.apply()
+                        map?.removeMarker(marker)
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this,
+                                "Error collecting coin",
+                                Toast.LENGTH_SHORT)
+                                .show()
+                        Log.d(tag, e.toString())
+                    }
         }
         builder.setNegativeButton("No", {dialog: DialogInterface?, which: Int -> })
         builder.show()
@@ -481,5 +498,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         super.onSaveInstanceState(outState)
         mapView?.onSaveInstanceState(outState)
     }
+
 }
 

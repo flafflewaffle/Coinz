@@ -17,7 +17,7 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var password : EditText
     private lateinit var email : EditText
     private lateinit var signup : Button
-    private lateinit var already : TextView
+    private lateinit var already : Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
