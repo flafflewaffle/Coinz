@@ -33,11 +33,11 @@ class LoginActivity : AppCompatActivity() {
             map()
         }
 
-        login.setOnClickListener { v ->
+        login.setOnClickListener { _ ->
             validate(email.text.toString(), password.text.toString())
         }
 
-        signup.setOnClickListener{ v ->
+        signup.setOnClickListener{ _ ->
             signup()
         }
 
@@ -68,7 +68,7 @@ class LoginActivity : AppCompatActivity() {
                             map()
                         } else {
                             Toast.makeText(this,
-                                    "Login failed, haven't logged in before! Don't forget to sign up!",
+                                    "Login failed",
                                     Toast.LENGTH_SHORT)
                                     .show()
                         }

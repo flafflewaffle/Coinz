@@ -26,7 +26,7 @@ class SignUpActivity : AppCompatActivity() {
         mAuth = FirebaseAuth.getInstance()
         setUpUIViews()
 
-        signup.setOnClickListener { v ->
+        signup.setOnClickListener { _ ->
             if(validateDetails()) {
                 //Upload data to database
                 val user_email = email.text.toString().trim()
@@ -39,7 +39,7 @@ class SignUpActivity : AppCompatActivity() {
                                         "Registration Successful",
                                         Toast.LENGTH_SHORT)
                                         .show()
-                                login()
+                                super.onBackPressed()
                             } else {
                                 Toast.makeText(this,
                                         "Registration Failed",
@@ -50,8 +50,8 @@ class SignUpActivity : AppCompatActivity() {
             }
         }
 
-        already.setOnClickListener { v ->
-            login()
+        already.setOnClickListener { _ ->
+            super.onBackPressed()
         }
 
     }
@@ -67,10 +67,6 @@ class SignUpActivity : AppCompatActivity() {
             return false
         }
         return true
-    }
-
-    fun login() {
-        super.onBackPressed()
     }
 
     private fun setUpUIViews() {

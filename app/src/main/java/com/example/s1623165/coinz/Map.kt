@@ -20,6 +20,8 @@ import android.widget.Toast
 import com.example.s1623165.coinz.DownloadCompleteRunner.result
 import com.example.s1623165.coinz.R.id.*
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
@@ -69,6 +71,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private lateinit var currentDate : String
     private lateinit var permissionsManager : PermissionsManager
     private lateinit var mAuth : FirebaseAuth
+    private lateinit var db : FirebaseFirestore
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,6 +81,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         setContentView(R.layout.activity_map)
         setSupportActionBar(toolbar)
         mAuth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
         fab.setOnClickListener { _ -> menu() }
         mapView = findViewById(R.id.mapview)
         mapView?.onCreate(savedInstanceState)
@@ -315,10 +319,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         builder.setMessage("Coin: ${coin.currency} \nValue: ${coin.value}")
         builder.setPositiveButton("Yes") { dialog: DialogInterface?, which: Int ->
             // add coin to wallet
-            val settingsWallet = getSharedPreferences("wallet", Context.MODE_PRIVATE)
-            val editorWallet = settingsWallet.edit()
-            editorWallet.putString(coin.id, coin.toString())
-            editorWallet.apply()
+//            db.collection("Users")
+//                .document(mAuth.uid!!)
+//                .collection("Wallet")
+//                .document(coin.id)
+//                .set(coin.toString())
 
             // remove coin from map
             val settingsMap = getSharedPreferences("map", Context.MODE_PRIVATE)

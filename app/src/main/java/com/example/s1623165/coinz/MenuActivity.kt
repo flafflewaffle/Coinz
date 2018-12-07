@@ -1,5 +1,6 @@
 package com.example.s1623165.coinz
 
+import android.arch.lifecycle.Transformations.map
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
@@ -17,20 +18,16 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import com.example.s1623165.coinz.R.id.*
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_menu.*
 import kotlinx.android.synthetic.main.app_bar_menu.*
 
 class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-    private lateinit var mAuth : FirebaseAuth
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
         setSupportActionBar(toolbar)
-        mAuth = FirebaseAuth.getInstance()
-        fab.setOnClickListener { _ -> map()}
+        fab.setOnClickListener { _ -> super.onBackPressed()}
 
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -80,20 +77,6 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         displayFragment(item.itemId)
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
-    }
-
-    fun settings() {
-        val settingsIntent = Intent(this, SettingsActivity::class.java)
-        startActivity(settingsIntent)
-    }
-
-    fun login() {
-        val loginIntent = Intent(this, LoginActivity::class.java)
-        startActivity(loginIntent)
-    }
-
-    fun map() {
-        super.onBackPressed()
     }
 
 }
