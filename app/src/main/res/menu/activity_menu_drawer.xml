@@ -6,15 +6,15 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_wallet"
-            android:icon="@drawable/ic_menu_manage"
+            android:icon="@drawable/ic_wallet_24dp"
             android:title="Wallet" />
         <item
             android:id="@+id/nav_bank"
-            android:icon="@drawable/ic_menu_gallery"
+            android:icon="@drawable/ic_bank_24dp"
             android:title="Bank" />
         <item
             android:id="@+id/nav_send_receive"
-            android:icon="@drawable/ic_menu_slideshow"
+            android:icon="@drawable/ic_send_24dp"
             android:title="Send/Receive Coinz" />
     </group>
 

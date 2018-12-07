@@ -6,7 +6,15 @@
         android:id="@+id/action_exchange"
         android:orderInCategory="100"
         android:title="Exchange Rates"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:iconTint="@android:color/white"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="200"
+        android:title="Settings"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_logout"
+        android:orderInCategory="300"
+        android:title="Logout"
+        app:showAsAction="never" />
 </menu>

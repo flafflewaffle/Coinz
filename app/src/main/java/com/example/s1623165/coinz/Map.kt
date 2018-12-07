@@ -19,6 +19,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import com.example.s1623165.coinz.DownloadCompleteRunner.result
 import com.example.s1623165.coinz.R.id.*
+import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
@@ -67,6 +68,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private lateinit var lastDownloadDate : String
     private lateinit var currentDate : String
     private lateinit var permissionsManager : PermissionsManager
+    private lateinit var mAuth : FirebaseAuth
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,6 +77,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         setContentView(R.layout.activity_map)
         setSupportActionBar(toolbar)
+        mAuth = FirebaseAuth.getInstance()
         fab.setOnClickListener { _ -> menu() }
         mapView = findViewById(R.id.mapview)
         mapView?.onCreate(savedInstanceState)
@@ -125,11 +128,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         Log.d(tag, geoJsonString)
     }
 
-    fun menu() {
-        val menuIntent = Intent(this, MenuActivity::class.java)
-        startActivity(menuIntent)
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.map_menu, menu)
@@ -143,6 +141,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         when (item.itemId) {
             R.id.action_exchange -> {
                 showDialogueExchangeRates()
+                return true
+            }
+            R.id.action_settings -> {
+                settings()
+                return true
+            }
+            R.id.action_logout -> {
+                showDialogueLogout()
                 return true
             }
             else -> return super.onOptionsItemSelected(item)
@@ -266,7 +272,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         // alert dialogue does no action except present information on map start
         val builder = AlertDialog.Builder(this)
         builder.setTitle("New Coin Map Downloaded")
-        builder.setMessage("Today's Exchange Rates\n"+getExchangeRates())
+        builder.setMessage("Today's Exchange Rates\n\n"+getExchangeRates())
         builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
         builder.show()
     }
@@ -322,6 +328,22 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             map?.removeMarker(marker)
         }
         builder.setNegativeButton("No", {dialog: DialogInterface?, which: Int -> })
+        builder.show()
+    }
+
+    //present an alert dialogue when the user would like to logout
+    private fun showDialogueLogout() {
+        // alert dialogue does no action except present information on map start
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Logout confirmation")
+        builder.setMessage("Are you sure you would like to logout?")
+        builder.setPositiveButton("Yes")
+        { dialog: DialogInterface?, which: Int ->
+            mAuth.signOut()
+            finish()
+            login()
+        }
+        builder.setNegativeButton("No", {dialog: DialogInterface?, which: Int ->})
         builder.show()
     }
 
@@ -408,6 +430,21 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         val shil = settings.getString("SHIL","")
 
         return "QUID: $quid \nDOLR: $dolr \nPENY: $peny \nSHIL: $shil"
+    }
+
+    fun menu() {
+        val menuIntent = Intent(this, MenuActivity::class.java)
+        startActivity(menuIntent)
+    }
+
+    fun settings() {
+        val settingsIntent = Intent(this, SettingsActivity::class.java)
+        startActivity(settingsIntent)
+    }
+
+    fun login() {
+        val loginIntent = Intent(this, LoginActivity::class.java)
+        startActivity(loginIntent)
     }
 
     override fun onResume() {
