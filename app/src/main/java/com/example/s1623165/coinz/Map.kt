@@ -268,8 +268,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private fun setIcons() {
         val icon = IconFactory.getInstance(this)
         coinMarkerIcons.put("DOLR", icon.fromResource(R.drawable.map_marker_blue))
-        coinMarkerIcons.put("SHIL", icon.fromResource(R.drawable.map_marker_green))
-        coinMarkerIcons.put("QUID", icon.fromResource(R.drawable.map_marker_red))
+        coinMarkerIcons.put("SHIL", icon.fromResource(R.drawable.map_marker_red))
+        coinMarkerIcons.put("QUID", icon.fromResource(R.drawable.map_marker_green))
         coinMarkerIcons.put("PENY", icon.fromResource(R.drawable.map_marker_yellow))
     }
 
