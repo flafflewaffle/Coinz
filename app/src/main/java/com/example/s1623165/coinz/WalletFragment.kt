@@ -2,8 +2,10 @@ package com.example.s1623165.coinz
 
 import android.app.ProgressDialog.show
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
@@ -18,19 +20,21 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
 import kotlin.collections.Map
+import kotlin.math.roundToInt
 
 class WalletFragment : Fragment() {
 
     private var wallet = ArrayList<CoinItem>()
     private var currencyImageMap = HashMap<String, Int>()
+    private var exchangeRates = HashMap<String, String>()
+    private val prefsFile = "MyPrefsFile"
+
 
     private lateinit var coins : MutableMap<String, Any>
-
     private lateinit var mContext: Context
     private lateinit var mAuth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var documentReference: DocumentReference
-
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: WalletAdapter
     private lateinit var layoutManager: RecyclerView.LayoutManager
@@ -48,6 +52,7 @@ class WalletFragment : Fragment() {
         documentReference = db.collection("Users").document(mAuth.uid!!)
                 .collection("User Information").document("Wallet")
         setCurrencyMap()
+        setExchangeRates()
         getCoins()
     }
 
@@ -108,6 +113,54 @@ class WalletFragment : Fragment() {
                             Toast.LENGTH_SHORT)
                             .show()
                     Log.d("WalletFragment", e.toString())
+                }
+    }
+
+    // retrieve the current exchange rates from shared preferences
+    private fun setExchangeRates() {
+        val settings = activity!!.getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
+
+        exchangeRates.put("QUID",settings.getString("QUID",""))
+        exchangeRates.put("DOLR",settings.getString("DOLR","") )
+        exchangeRates.put("PENY",settings.getString("PENY",""))
+        exchangeRates.put("SHIL",settings.getString("SHIL",""))
+
+    }
+
+    //present an alert dialogue when you want to bank a coin
+    private fun showDialogueBank(coinItem: CoinItem) {
+        val builder = AlertDialog.Builder(mContext)
+        val exchangeRate = exchangeRates.get(coinItem.title)!!
+        val gold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
+        builder.setTitle("Would you like to bank this coin?")
+        builder.setMessage("This coin is worth $gold in gold.\nYou can bank X more coins today.")
+        builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
+            bankCoin(coinItem)
+        }
+        builder.setNegativeButton("NO",{ dialog: DialogInterface?, which: Int -> })
+        builder.show()
+    }
+
+    //This banks the coin the user has chosen
+    private fun bankCoin(coinItem: CoinItem) {
+        val exchangeRate = exchangeRates.get(coinItem.title)!!
+        val coinInGold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
+
+        db.collection("Users").document(mAuth.uid!!)
+                .collection("User Information").document("Bank")
+                .set(coinInGold) //need to increment
+                .addOnSuccessListener { _ ->
+                    Toast.makeText(mContext,
+                            "Coin cashed into bank",
+                            Toast.LENGTH_SHORT)
+                            .show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(mContext,
+                            "Error storing coin, try again later",
+                            Toast.LENGTH_SHORT)
+                            .show()
+                    Log.d(tag, e.toString())
                 }
     }
 }

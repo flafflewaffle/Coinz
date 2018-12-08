@@ -345,7 +345,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                     }
                     .addOnFailureListener { e ->
                         Toast.makeText(this,
-                                "Error collecting coin",
+                                "Error collecting coin, try again later",
                                 Toast.LENGTH_SHORT)
                                 .show()
                         Log.d(tag, e.toString())
