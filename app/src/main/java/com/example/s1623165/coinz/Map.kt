@@ -23,6 +23,7 @@ import com.example.s1623165.coinz.R.id.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
@@ -76,7 +77,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        //initialise mapview and current date
+        //initialise mapview, firebase and current date
         super.onCreate(savedInstanceState)
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         setContentView(R.layout.activity_map)
@@ -266,10 +267,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     // set icons in the hashmap for each currency
     private fun setIcons() {
         val icon = IconFactory.getInstance(this)
-        coinMarkerIcons.put("DOLR", icon.fromBitmap(BitmapFactory.decodeResource(resources, R.drawable.ic_map_marker_green_24dp)))
-        coinMarkerIcons.put("SHIL", icon.fromBitmap(BitmapFactory.decodeResource(resources, R.drawable.ic_map_marker_blue_24dp)))
-        coinMarkerIcons.put("QUID", icon.fromBitmap(BitmapFactory.decodeResource(resources, R.drawable.ic_map_marker_red_24dp)))
-        coinMarkerIcons.put("PENY", icon.fromBitmap(BitmapFactory.decodeResource(resources, R.drawable.ic_map_marker_yellow_24dp)))
+        coinMarkerIcons.put("DOLR", icon.fromResource(R.drawable.map_marker_blue))
+        coinMarkerIcons.put("SHIL", icon.fromResource(R.drawable.map_marker_green))
+        coinMarkerIcons.put("QUID", icon.fromResource(R.drawable.map_marker_red))
+        coinMarkerIcons.put("PENY", icon.fromResource(R.drawable.map_marker_yellow))
     }
 
     //present an alert dialogue when a new map is successfully downloaded
@@ -328,7 +329,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 .document(mAuth.uid!!)
                 .collection("User Information")
                 .document("Wallet")
-                .set(idCoinMap)
+                .set(idCoinMap, SetOptions.merge())
                     .addOnSuccessListener { _ ->
                         Toast.makeText(this,
                                 "Coin collected",
