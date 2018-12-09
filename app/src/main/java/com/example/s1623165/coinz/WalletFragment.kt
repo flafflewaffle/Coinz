@@ -129,11 +129,14 @@ class WalletFragment : Fragment() {
 
     //present an alert dialogue when you want to bank a coin
     private fun showDialogueBank(coinItem: CoinItem) {
+        val settings = activity!!.getSharedPreferences("MyPrefsFile", Context.MODE_PRIVATE)
+        val currentAllowance = settings.getInt("allowance",25)
+
         val builder = AlertDialog.Builder(mContext)
         val exchangeRate = exchangeRates.get(coinItem.title)!!
         val gold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
         builder.setTitle("Would you like to bank this coin?")
-        builder.setMessage("This coin is worth $gold in gold.\nYou can bank X more coins today.")
+        builder.setMessage("This coin is worth $gold in gold.\nYou can bank $currentAllowance more coins today.")
         builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
             bankCoin(coinItem)
         }
@@ -143,12 +146,34 @@ class WalletFragment : Fragment() {
 
     //This banks the coin the user has chosen
     private fun bankCoin(coinItem: CoinItem) {
-        val exchangeRate = exchangeRates.get(coinItem.title)!!
-        val coinInGold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
+        Log.d(tag, "Converting coin to gold and sending to bank")
 
+        // current coin's value in gold
+        val exchangeRate = exchangeRates.get(coinItem.title)!!
+        var coinInGold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
+
+        //calculating total gold by adding the current coin's value in gold + current amount of gold in bank
+        val settings = activity!!.getSharedPreferences("MyPrefsFile", Context.MODE_PRIVATE)
+        val currentGold = settings.getInt("Bank", 0)
+        val currentAllowance = settings.getInt("allowance",25)
+
+        val totalGold = coinInGold + currentGold
+
+        // gold to store in database
+        val gold = HashMap<String, Any>()
+        gold.put("Gold", totalGold)
+        Log.d(tag, "Total gold collected$totalGold")
+
+        // store gold in bank, update current allowance in shared prefs
+        val editor = settings.edit()
+        editor.putInt("Bank", totalGold)
+        editor.putInt("allowance", (currentAllowance-1))
+        editor.apply()
+
+        // store gold in database bank
         db.collection("Users").document(mAuth.uid!!)
                 .collection("User Information").document("Bank")
-                .set(coinInGold) //need to increment
+                .set(gold)
                 .addOnSuccessListener { _ ->
                     Toast.makeText(mContext,
                             "Coin cashed into bank",

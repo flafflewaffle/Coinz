@@ -1,13 +1,17 @@
 package com.example.s1623165.coinz
 
+import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlin.math.sign
 
@@ -18,12 +22,14 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var email : EditText
     private lateinit var signup : Button
     private lateinit var already : Button
+    private lateinit var db : FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
         setSupportActionBar(toolbar)
         mAuth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
         setUpUIViews()
 
         signup.setOnClickListener { _ ->

@@ -121,6 +121,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 val editor = settings.edit()
                 editor.putString("lastDownloadDate", currentDate)
                 editor.putString("geoJson", geoJsonString)
+                editor.putInt("allowance",25)
                 editor.apply()
                 setExchangeRates()
                 setCoinz()
@@ -323,7 +324,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             // add coin to wallet
             Log.d(tag, "Adding coin to wallet")
             val idCoinMap = HashMap<String, Any>()
-            idCoinMap.put(coin.id, coin.toString())
+            idCoinMap[coin.id] = coin.toString()
 
             db.collection("Users")
                 .document(mAuth.uid!!)
@@ -357,12 +358,17 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     //present an alert dialogue when the user would like to logout
     private fun showDialogueLogout() {
-        // alert dialogue does no action except present information on map start
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Logout confirmation")
         builder.setMessage("Are you sure you would like to logout?")
         builder.setPositiveButton("Yes")
         { dialog: DialogInterface?, which: Int ->
+            // clear the current amount of gold in sharedprefs
+            val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
+            val editor = settings.edit()
+            editor.remove("Bank")
+            editor.apply()
+
             mAuth.signOut()
             finish()
             login()
