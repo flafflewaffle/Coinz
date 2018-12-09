@@ -42,7 +42,6 @@ class WalletFragment : Fragment() {
     override fun onAttach(context: Context?) {
         super.onAttach(context)
         this.mContext = context!!
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,21 +82,8 @@ class WalletFragment : Fragment() {
                                     Toast.LENGTH_SHORT)
                                     .show()
                         }
-
-                        for (key: String in coins.keys) {
-                            val coinJson = coins[key] as String
-                            val gson = Gson()
-                            val coin = gson.fromJson(coinJson, Coin::class.java)
-                            val image = currencyImageMap[coin.currency]!!
-                            wallet.add(CoinItem(image, coin.currency, coin.value.toString(), coin.id))
-                        }
-
-                        layoutManager = LinearLayoutManager(mContext)
-                        adapter = WalletAdapter(wallet)
-
-                        recyclerView.layoutManager = this.layoutManager
-                        recyclerView.adapter = this.adapter
-
+                        setWallet()
+                        buildRecyclerView()
                         Log.d("WalletFragment", "Wallet retrieved from Firestore with wallet size: ${wallet.size}")
                     } else {
                         Toast.makeText(mContext,
@@ -127,8 +113,30 @@ class WalletFragment : Fragment() {
 
     }
 
+    private fun setWallet() {
+        for (key: String in coins.keys) {
+            val coinJson = coins[key] as String
+            val gson = Gson()
+            val coin = gson.fromJson(coinJson, Coin::class.java)
+            val image = currencyImageMap[coin.currency]!!
+            wallet.add(CoinItem(image, coin.currency, coin.value.toString(), coin.id))
+        }
+    }
+
+    private fun buildRecyclerView() {
+        layoutManager = LinearLayoutManager(mContext)
+        adapter = WalletAdapter(wallet)
+
+        recyclerView.layoutManager = this.layoutManager
+        recyclerView.adapter = this.adapter
+        adapter.setOnItemClickListener { position: Int ->
+            showDialogueBank(wallet[position])
+        }
+    }
+
     //present an alert dialogue when you want to bank a coin
     private fun showDialogueBank(coinItem: CoinItem) {
+        Log.d(tag, "dialogue for banking coin")
         val settings = activity!!.getSharedPreferences("MyPrefsFile", Context.MODE_PRIVATE)
         val currentAllowance = settings.getInt("allowance",25)
 
@@ -179,6 +187,8 @@ class WalletFragment : Fragment() {
                             "Coin cashed into bank",
                             Toast.LENGTH_SHORT)
                             .show()
+                    wallet.remove(coinItem)
+                    adapter.notifyItemRemoved(wallet.indexOf(coinItem))
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(mContext,
@@ -188,4 +198,6 @@ class WalletFragment : Fragment() {
                     Log.d(tag, e.toString())
                 }
     }
+
+
 }
