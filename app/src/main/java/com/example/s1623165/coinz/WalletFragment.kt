@@ -16,10 +16,10 @@ import android.widget.Adapter
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
-import kotlin.collections.Map
 import kotlin.math.roundToInt
 
 class WalletFragment : Fragment() {
@@ -137,7 +137,7 @@ class WalletFragment : Fragment() {
     //present an alert dialogue when you want to bank a coin
     private fun showDialogueBank(coinItem: CoinItem) {
         Log.d(tag, "dialogue for banking coin")
-        val settings = activity!!.getSharedPreferences("MyPrefsFile", Context.MODE_PRIVATE)
+        val settings = activity!!.getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         val currentAllowance = settings.getInt("allowance",25)
 
         val builder = AlertDialog.Builder(mContext)
@@ -161,7 +161,7 @@ class WalletFragment : Fragment() {
         var coinInGold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
 
         //calculating total gold by adding the current coin's value in gold + current amount of gold in bank
-        val settings = activity!!.getSharedPreferences("MyPrefsFile", Context.MODE_PRIVATE)
+        val settings = activity!!.getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         val currentGold = settings.getInt("Bank", 0)
         val currentAllowance = settings.getInt("allowance",25)
 
@@ -187,8 +187,8 @@ class WalletFragment : Fragment() {
                             "Coin cashed into bank",
                             Toast.LENGTH_SHORT)
                             .show()
-                    wallet.remove(coinItem)
-                    adapter.notifyItemRemoved(wallet.indexOf(coinItem))
+                    //delete coin from database
+                    deleteCoinDatabase(coinItem)
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(mContext,
@@ -196,6 +196,18 @@ class WalletFragment : Fragment() {
                             Toast.LENGTH_SHORT)
                             .show()
                     Log.d(tag, e.toString())
+                }
+    }
+
+    private fun deleteCoinDatabase(coinItem: CoinItem) {
+        val deleteCoin = HashMap<String,Any>()
+        deleteCoin.put(coinItem.id, FieldValue.delete())
+        db.collection("Users").document(mAuth.uid!!)
+                .collection("User Information").document("Wallet")
+                .update(deleteCoin)
+                .addOnSuccessListener { _ ->
+                    wallet.remove(coinItem)
+                    adapter.notifyItemRemoved(wallet.indexOf(coinItem))
                 }
     }
 

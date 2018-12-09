@@ -89,10 +89,10 @@ class LoginActivity : AppCompatActivity() {
                 .get()
                 .addOnSuccessListener { documentSnapshot ->
                     if(documentSnapshot.exists()) {
-                        val gold = documentSnapshot.get("Gold") as Int
+                        val gold = documentSnapshot.get("Gold") as Number
                         val settings = getSharedPreferences("MyPrefsFile", Context.MODE_PRIVATE)
                         val editor = settings.edit()
-                        editor.putInt("Bank", gold)
+                        editor.putInt("Bank", gold.toInt())
                         editor.apply()
                         map()
                     }
