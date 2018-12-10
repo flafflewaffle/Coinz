@@ -34,7 +34,8 @@ class WalletFragment : Fragment() {
     private lateinit var mContext: Context
     private lateinit var mAuth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
-    private lateinit var documentReference: DocumentReference
+    private lateinit var walletReference: DocumentReference
+    private lateinit var bankReference: DocumentReference
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: WalletAdapter
     private lateinit var layoutManager: RecyclerView.LayoutManager
@@ -48,8 +49,10 @@ class WalletFragment : Fragment() {
         super.onCreate(savedInstanceState)
         mAuth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
-        documentReference = db.collection("Users").document(mAuth.uid!!)
+        walletReference = db.collection("Users").document(mAuth.uid!!)
                 .collection("User Information").document("Wallet")
+        bankReference = db.collection("Users").document(mAuth.uid!!)
+                .collection("User Information").document("Bank")
         setCurrencyMap()
         setExchangeRates()
         getCoins()
@@ -71,7 +74,7 @@ class WalletFragment : Fragment() {
 
     //retrieve coins from the database and add them as coin items to the wallet
     private fun getCoins() {
-        documentReference.get()
+        walletReference.get()
                 .addOnSuccessListener { documentSnapshot ->
                     if (documentSnapshot.exists()) {
                         coins = documentSnapshot.data!!
@@ -107,7 +110,7 @@ class WalletFragment : Fragment() {
         val settings = activity!!.getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
 
         exchangeRates.put("QUID",settings.getString("QUID",""))
-        exchangeRates.put("DOLR",settings.getString("DOLR","") )
+        exchangeRates.put("DOLR",settings.getString("DOLR",""))
         exchangeRates.put("PENY",settings.getString("PENY",""))
         exchangeRates.put("SHIL",settings.getString("SHIL",""))
 
@@ -134,22 +137,30 @@ class WalletFragment : Fragment() {
         }
     }
 
-    //present an alert dialogue when you want to bank a coin
+    // present an alert dialogue when you want to bank a coin
+    // if the current allowance is 0, do not allow the user to bank a coin
     private fun showDialogueBank(coinItem: CoinItem) {
         Log.d(tag, "dialogue for banking coin")
         val settings = activity!!.getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         val currentAllowance = settings.getInt("allowance",25)
-
-        val builder = AlertDialog.Builder(mContext)
-        val exchangeRate = exchangeRates.get(coinItem.title)!!
-        val gold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
-        builder.setTitle("Would you like to bank this coin?")
-        builder.setMessage("This coin is worth $gold in gold.\nYou can bank $currentAllowance more coins today.")
-        builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
-            bankCoin(coinItem)
+        if(currentAllowance == 0) {
+            val builder = AlertDialog.Builder(mContext)
+            builder.setTitle("Current Allowance Expended")
+            builder.setMessage("You can no longer bank any more coins today as your allowance is 0. Please wait until tomorrow.")
+            builder.setPositiveButton("OK") { dialog: DialogInterface?, which: Int -> }
+            builder.show()
+        } else {
+            val builder = AlertDialog.Builder(mContext)
+            val exchangeRate = exchangeRates.get(coinItem.title)!!
+            val gold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
+            builder.setTitle("Would you like to bank this coin?")
+            builder.setMessage("This coin is worth $gold in gold.\nYou can bank $currentAllowance more coins today.")
+            builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
+                bankCoin(coinItem)
+            }
+            builder.setNegativeButton("NO", { dialog: DialogInterface?, which: Int -> })
+            builder.show()
         }
-        builder.setNegativeButton("NO",{ dialog: DialogInterface?, which: Int -> })
-        builder.show()
     }
 
     //This banks the coin the user has chosen
@@ -179,9 +190,7 @@ class WalletFragment : Fragment() {
         editor.apply()
 
         // store gold in database bank
-        db.collection("Users").document(mAuth.uid!!)
-                .collection("User Information").document("Bank")
-                .set(gold)
+        bankReference.set(gold)
                 .addOnSuccessListener { _ ->
                     Toast.makeText(mContext,
                             "Coin cashed into bank",
@@ -201,15 +210,12 @@ class WalletFragment : Fragment() {
 
     private fun deleteCoinDatabase(coinItem: CoinItem) {
         val deleteCoin = HashMap<String,Any>()
-        deleteCoin.put(coinItem.id, FieldValue.delete())
-        db.collection("Users").document(mAuth.uid!!)
-                .collection("User Information").document("Wallet")
-                .update(deleteCoin)
+        deleteCoin[coinItem.id] = FieldValue.delete()
+        walletReference.update(deleteCoin)
                 .addOnSuccessListener { _ ->
                     wallet.remove(coinItem)
                     adapter.notifyItemRemoved(wallet.indexOf(coinItem))
                 }
     }
-
 
 }

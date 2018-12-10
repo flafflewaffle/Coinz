@@ -2,13 +2,16 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:paddingBottom="16dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="16dp">
 
-    <TextView
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/exchangeRates"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Bank Fragment"
-        android:textSize="30sp"
-        android:layout_centerInParent="true"/>
+        android:layout_height="400dp" />
+
 
 </RelativeLayout>
