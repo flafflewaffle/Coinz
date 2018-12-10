@@ -20,6 +20,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import com.example.s1623165.coinz.DownloadCompleteRunner.result
 import com.example.s1623165.coinz.R.id.*
+import com.google.common.base.CharMatcher.inRange
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -54,6 +55,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.sql.Time
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.roundToLong
@@ -62,6 +64,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     private val tag = "MapActivity"
     private val prefsFile = "MyPrefsFile"
+    private val rainbowCoin = "Rainbow Coin!"
+    private val latmax = 55.946233
+    private val latmin = 55.942617
+    private val lonmax = -3.192473
+    private val lonmin = -3.184319
 
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
@@ -74,7 +81,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private lateinit var permissionsManager : PermissionsManager
     private lateinit var mAuth : FirebaseAuth
     private lateinit var db : FirebaseFirestore
-
+    private lateinit var magicCoin : LatLng
 
     override fun onCreate(savedInstanceState: Bundle?) {
         //initialise mapview, firebase and current date
@@ -84,10 +91,13 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         setSupportActionBar(toolbar)
         mAuth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
+
         fab.setOnClickListener { _ -> menu() }
+
         mapView = findViewById(R.id.mapview)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
+
         currentDate = getDate()
         setIcons()
     }
@@ -114,15 +124,21 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 showDialogueBadNetworkConnection()
             }
             else {
-                //clear map of previous coins and save the geojson
-                //update the last download date and set coins, icons and exchange rates
+                // clear map of previous coins and save the geojson
+                // update the last download date and set coins, icons and exchange rates
                 clearMapCoins()
+                // set rainbow coin
+                val lat = Random().nextDouble()*(latmax - latmin) + latmin
+                val lon = Random().nextDouble()*(lonmax - lonmin) + lonmin
+                magicCoin = LatLng(lat, lon)
+
                 val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
                 val editor = settings.edit()
                 editor.putString("lastDownloadDate", currentDate)
                 editor.putString("geoJson", geoJsonString)
                 editor.putInt("allowance",25)
                 editor.apply()
+
                 setExchangeRates()
                 setCoinz()
                 showDownloadSuccessful()
@@ -170,18 +186,30 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             map = mapboxMap
             // present relevant dialogues if the coin in question is in range or not
             map?.setOnMarkerClickListener { marker ->
-                val coinID = marker.snippet
-                val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
-                val coinJson = settings.getString(coinID,"")
-                val gson = Gson()
-                val coin = gson.fromJson(coinJson, Coin::class.java)
-                if(inRange(coin)) {
-                    showDialogueCoinInRange(coin, marker)
-                    true
+                if(marker.title.equals(rainbowCoin)) {
+                    if(inRange(marker))
+                    {
+                        showDialogueRainbowCoinInRange(marker)
+                        true
+                    }
+                    else {
+                        showDialogueRainbowCoinNotInRange()
+                        true
+                    }
                 }
                 else {
-                    showDialogueNotInRange(coin)
-                    true
+                    val coinID = marker.snippet
+                    val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
+                    val coinJson = settings.getString(coinID, "")
+                    val gson = Gson()
+                    val coin = gson.fromJson(coinJson, Coin::class.java)
+                    if (inRange(marker)) {
+                        showDialogueCoinInRange(coin, marker)
+                        true
+                    } else {
+                        showDialogueNotInRange(coin)
+                        true
+                    }
                 }
             }
             // enable location/map settings/coin markers
@@ -189,6 +217,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
             initialiseCoinMarkers()
+            initialiseRainbowCoin()
         }
     }
 
@@ -356,6 +385,58 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         builder.show()
     }
 
+    // present an alert dialogue if the rainbow coin is not within range of the user
+    private fun showDialogueRainbowCoinNotInRange() {
+        // the alert dialogue does not do anything bt present info about the coin out of range
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("A Mysterious Coin in Sight!")
+        builder.setMessage("This coin is not like the others... However you are not in range to pick it up! Let's get a bit closer.")
+        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.show()
+    }
+
+    // present an alert dialogue if the rainbow coin is within range of the user
+    private fun showDialogueRainbowCoinInRange(marker : Marker) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("You've Found the Rainbow Coin!")
+        builder.setMessage("Congratulations! Collecting this coin gives you a 100 gold! The Rainbow Coin appears once a day, so best wait until tomorrow! Who knows where it will be.")
+        builder.setPositiveButton("OK") {dialog: DialogInterface?, which: Int ->
+            val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
+            val currentGold = settings.getInt("Bank", 0)
+            val totalGold = currentGold+100
+
+            val gold = HashMap<String, Any>()
+            gold.put("Gold", totalGold)
+
+            // store gold in bank
+            val editor = settings.edit()
+            editor.putInt("Bank", totalGold)
+            editor.apply()
+
+            db.collection("Users")
+                    .document(mAuth.uid!!)
+                    .collection("User Information")
+                    .document("Bank")
+                    .set(gold)
+                    .addOnSuccessListener { _ ->
+                        Toast.makeText(this,
+                                "Rainbow Coin succesfully collected!",
+                                Toast.LENGTH_SHORT)
+                                .show()
+                        //delete coin from map
+                        map?.removeMarker(marker)
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(this,
+                                "Error collecting rainbow coin, try again later",
+                                Toast.LENGTH_SHORT)
+                                .show()
+                        Log.d(tag, e.toString())
+                    }
+        }
+        builder.show()
+    }
+
     //present an alert dialogue when the user would like to logout
     private fun showDialogueLogout() {
         val builder = AlertDialog.Builder(this)
@@ -379,15 +460,26 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     // check if coin is within range to location
     @SuppressWarnings("MissingPermission")
-    private fun inRange(coin : Coin) : Boolean {
+    private fun inRange(coin : Marker) : Boolean {
         // Get current location (assert non null)
         val curLat = map?.locationComponent?.lastKnownLocation?.latitude!!
         val curLon = map?.locationComponent?.lastKnownLocation?.longitude!!
         val curLocation = LatLng(curLat, curLon)
         // calculate and return if other coin is within 50m
-        val distance = coin.distanceTo(curLocation)
+        val distance = distanceTo(coin.position, curLocation)
         Log.d(tag, "Distance between coin and current location: $distance")
         return (distance <= 50.0)
+    }
+
+    //calculates the distance between to LatLng
+    private fun distanceTo(location : LatLng, locOther: LatLng): Float {
+        val result = FloatArray(1)
+        Location.distanceBetween(location.latitude,
+                location.longitude,
+                locOther.latitude,
+                locOther.longitude,
+                result)
+        return result[0]
     }
 
     // create coin instance from json and store in shared preference (for map)
@@ -434,6 +526,13 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 .snippet(coin.id)
                 .icon(coinMarkerIcons[coin.currency]))
         }
+    }
+
+    // initialise rainbow coin marker
+    private fun initialiseRainbowCoin() {
+        map?.addMarker(MarkerOptions()
+                .position(magicCoin)
+                .title(rainbowCoin))
     }
 
     // clear the map of coins when download a new map

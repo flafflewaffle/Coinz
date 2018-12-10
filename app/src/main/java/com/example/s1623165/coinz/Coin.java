@@ -67,16 +67,6 @@ public final class Coin {
         Gson gson  = new Gson();
         return gson.toJson(this);
     }
-
-    public float distanceTo(LatLng locOther) {
-        float result[] = new float[1];
-        Location.distanceBetween(this.location.getLatitude(),
-                this.location.getLongitude(),
-                locOther.getLatitude(),
-                locOther.getLongitude(),
-                result);
-        return result[0];
-    }
 }
 
 

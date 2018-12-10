@@ -4,9 +4,12 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
+import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
@@ -27,6 +30,7 @@ class BankFragment : Fragment() {
 
     private lateinit var mContext: Context
     private lateinit var barChart : BarChart
+    private lateinit var textView : TextView
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
@@ -40,14 +44,23 @@ class BankFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val root = inflater?.inflate(R.layout.bank_fragment, null)
+        val root = inflater.inflate(R.layout.bank_fragment, null)
         barChart = root.findViewById(R.id.exchangeRates) as BarChart
 
+        // retrieve the amount of gold and set the text view
+        val settings = activity!!.getSharedPreferences(prefsFile,  Context.MODE_PRIVATE)
+        val gold = settings.getInt("Bank", 0)
+        textView = root.findViewById(R.id.textGold) as TextView
+        textView.text = "You have $gold Gold!"
+        textView.gravity = Gravity.CENTER
+
+        // set the colours for each currency
         colours.add(ContextCompat.getColor(barChart.context, R.color.colorPrimary))
         colours.add(ContextCompat.getColor(barChart.context, R.color.colorAccent))
         colours.add(ContextCompat.getColor(barChart.context, R.color.fbYellow))
         colours.add(ContextCompat.getColor(barChart.context, R.color.fbGreen))
 
+        //create bar chart
         val barDataSet = BarDataSet(barEntries, "Exchange Rates")
         barDataSet.colors = colours
         val barData = BarData(barDataSet)
@@ -55,7 +68,15 @@ class BankFragment : Fragment() {
         barChart.description.isEnabled = false
         barChart.xAxis.setLabelCount(4,true)
         barChart.xAxis.setValueFormatter { value, _ ->
-            currencies[value.roundToInt()%currencies.size]
+            // avoids rounding errors with floats, and assures that rounding
+            // does not exceed list size range
+            if(value.roundToInt() >= currencies.size) {
+                currencies[currencies.size-1]
+            } else if (value.roundToInt() < 0) {
+                currencies[0]
+            } else {
+                currencies[value.roundToInt()%currencies.size]
+            }
         }
         return root
     }
@@ -70,6 +91,7 @@ class BankFragment : Fragment() {
         exchangeRates.put("SHIL",settings.getString("SHIL",""))
     }
 
+    //set bar entries for each currency
     private fun setBarEntries() {
         barEntries.add(BarEntry(0F, exchangeRates["QUID"]!!.toFloat()))
         barEntries.add(BarEntry(1F,exchangeRates["DOLR"]!!.toFloat()))

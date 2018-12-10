@@ -11,7 +11,19 @@
     <com.github.mikephil.charting.charts.BarChart
         android:id="@+id/exchangeRates"
         android:layout_width="match_parent"
-        android:layout_height="400dp" />
+        android:layout_height="400dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"/>
+
+    <TextView
+        android:id="@+id/textGold"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gold"
+        android:textColor="@color/md_grey_800"
+        android:layout_centerHorizontal="true"
+        android:textSize="20sp"
+        android:layout_below="@+id/exchangeRates"/>
 
 
 </RelativeLayout>

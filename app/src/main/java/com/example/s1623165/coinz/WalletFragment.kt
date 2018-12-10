@@ -29,7 +29,6 @@ class WalletFragment : Fragment() {
     private var exchangeRates = HashMap<String, String>()
     private val prefsFile = "MyPrefsFile"
 
-
     private lateinit var coins : MutableMap<String, Any>
     private lateinit var mContext: Context
     private lateinit var mAuth: FirebaseAuth
@@ -116,6 +115,7 @@ class WalletFragment : Fragment() {
 
     }
 
+    // sets the wallet by retrieving lal the coins from the database
     private fun setWallet() {
         for (key: String in coins.keys) {
             val coinJson = coins[key] as String
@@ -126,6 +126,7 @@ class WalletFragment : Fragment() {
         }
     }
 
+    // builds the recycler view and sets the on click listener
     private fun buildRecyclerView() {
         layoutManager = LinearLayoutManager(mContext)
         adapter = WalletAdapter(wallet)
@@ -208,6 +209,7 @@ class WalletFragment : Fragment() {
                 }
     }
 
+    // delete coin from the database and update the wallet
     private fun deleteCoinDatabase(coinItem: CoinItem) {
         val deleteCoin = HashMap<String,Any>()
         deleteCoin[coinItem.id] = FieldValue.delete()
