@@ -43,10 +43,19 @@
             android:id="@+id/bankImage"
             android:layout_height="50dp"
             android:layout_width="50dp"
-            android:padding="2dp"
+            android:padding="4dp"
             android:src="@drawable/ic_bank_grey_24dp"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"/>
+
+        <ImageView
+            android:id="@+id/sendImage"
+            android:layout_height="50dp"
+            android:layout_width="50dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_send_black_24dp"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/bankImage"/>
 
     </RelativeLayout>
 

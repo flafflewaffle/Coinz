@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Adapter
+import android.widget.EditText
 import android.widget.Toast
 import com.example.s1623165.coinz.R.id.exchangeRates
 import com.google.firebase.auth.FirebaseAuth
@@ -134,11 +135,15 @@ class WalletFragment : Fragment() {
     private fun buildRecyclerView() {
         layoutManager = LinearLayoutManager(mContext)
         adapter = WalletAdapter(wallet)
-
         recyclerView.layoutManager = this.layoutManager
         recyclerView.adapter = this.adapter
+
         adapter.setOnItemClickListener { position: Int ->
             showDialogueBank(wallet[position], position)
+        }
+
+        adapter.setOnSendClickListener { position: Int ->
+            showDialogueSendCoin(wallet[position], position)
         }
     }
 
@@ -225,7 +230,7 @@ class WalletFragment : Fragment() {
     }
 
     // present an alert dialogue when you want to send a coin to another user
-    private fun sendToFriends(coinItem: CoinItem, position : Int) {
+    private fun showDialogueSendCoin(coinItem: CoinItem, position : Int) {
         Log.d(tag, "Dialogue for sending coin to a user")
             val builder = AlertDialog.Builder(mContext)
             val exchangeRate = exchangeRates.get(coinItem.title)!!
@@ -233,40 +238,54 @@ class WalletFragment : Fragment() {
             builder.setTitle("Would you like to send this coin to a friend?")
             builder.setMessage("This coin is worth $gold in gold.")
             builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
-                chooseFriend(coinItem, position)
+                sendToFriend(coinItem, position)
             }
             builder.setNegativeButton("NO", { dialog: DialogInterface?, which: Int -> })
             builder.show()
     }
 
-
-    private fun chooseFriend(coinItem: CoinItem, position: Int) {
+    private fun sendToFriend(coinItem: CoinItem, position: Int) {
         //edit text with email
-        val email = ""
-        checkEmail(email, coinItem, position)
+        val builder = AlertDialog.Builder(mContext)
+        val view = layoutInflater.inflate(R.layout.send_coin, null)
+        val email = view.findViewById(R.id.edit_email) as EditText
+        builder.setPositiveButton("OK") { dialog: DialogInterface?, which: Int ->
+            checkEmail(email.text.toString(), coinItem, position)
+        }
+        builder.setNegativeButton("Cancel", { dialog: DialogInterface?, which: Int -> })
+        builder.setView(view)
+        builder.show()
     }
 
     //checks if the entered email address exists within the database
     private fun checkEmail(email : String, coinItem: CoinItem, position: Int) {
-        db.collection("Users").document(email).get()
-                .addOnSuccessListener { documentSnapshot ->
-                    if(documentSnapshot.exists()) {
-                        sendCoin(email, coinItem, position)
+        if(email.equals(mAuth.currentUser!!.email)) {
+            Toast.makeText(mContext,
+                    "Please enter a different user!",
+                    Toast.LENGTH_SHORT)
+                    .show()
+        }
+        else {
+            db.collection("Users").document(email).collection("User Information")
+                    .document("Bank").get()
+                    .addOnSuccessListener { documentSnapshot ->
+                        if (documentSnapshot.exists()) {
+                            sendCoin(email, coinItem, position)
+                        } else {
+                            Toast.makeText(mContext,
+                                    "Please enter a valid email!",
+                                    Toast.LENGTH_SHORT)
+                                    .show()
+                        }
                     }
-                    else {
+                    .addOnFailureListener { e ->
                         Toast.makeText(mContext,
-                                "Please enter a valid email!",
+                                "Error viewing user information",
                                 Toast.LENGTH_SHORT)
                                 .show()
+                        Log.d(tag, e.toString())
                     }
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(mContext,
-                            "Error viewing user information",
-                            Toast.LENGTH_SHORT)
-                            .show()
-                    Log.d(tag, e.toString())
-                }
+        }
     }
 
     //if the email address is valid, exchanges the coin into gold and sends the gold to the user
@@ -291,7 +310,7 @@ class WalletFragment : Fragment() {
                         userRef.set(gold)
                                 .addOnSuccessListener { _ ->
                                     Toast.makeText(mContext,
-                                            "Gold successfully sent to user!",
+                                            "Gold successfully sent to $email!",
                                             Toast.LENGTH_SHORT)
                                             .show()
                                     deleteCoinDatabase(coinItem, position)

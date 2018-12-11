@@ -15,10 +15,17 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
 
     private ArrayList<CoinItem> wallet;
     private OnItemClickListener mListener;
+    private OnSendClickListener sendListener;
+
+    public interface OnSendClickListener {
+        void onSendClick(int position);
+    }
 
     public interface OnItemClickListener {
         void onBankClick(int position);
     }
+
+    public void setOnSendClickListener(OnSendClickListener listener) { sendListener = listener;}
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
@@ -30,19 +37,29 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
         public TextView title;
         public TextView description;
         public ImageView bankImage;
+        public ImageView sendImage;
 
-        public WalletViewHolder(@NonNull View itemView, final OnItemClickListener listener) {
+        public WalletViewHolder(@NonNull View itemView, final OnItemClickListener listener, final OnSendClickListener sendListener) {
             super(itemView);
             coinImage = itemView.findViewById(R.id.coinImage);
             title = itemView.findViewById(R.id.textTitle);
             description = itemView.findViewById(R.id.textDescription);
             bankImage = itemView.findViewById(R.id.bankImage);
+            sendImage = itemView.findViewById(R.id.sendImage);
 
             bankImage.setOnClickListener(v -> {
                 if(listener != null) {
                     int position = getAdapterPosition();
                     if(position != RecyclerView.NO_POSITION) {
                         listener.onBankClick(position);
+                    }
+                }
+            });
+            sendImage.setOnClickListener(v -> {
+                if(sendListener != null) {
+                    int position = getAdapterPosition();
+                    if(position != RecyclerView.NO_POSITION) {
+                        sendListener.onSendClick(position);
                     }
                 }
             });
@@ -57,7 +74,7 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletView
     @Override
     public WalletViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.coin_item, viewGroup, false);
-        WalletViewHolder wvh = new WalletViewHolder(v, mListener);
+        WalletViewHolder wvh = new WalletViewHolder(v, mListener, sendListener);
         return wvh;
     }
 
