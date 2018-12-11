@@ -244,6 +244,7 @@ class WalletFragment : Fragment() {
             builder.show()
     }
 
+    //present an alert dialogue to enter email of user you want to send gold to
     private fun sendToFriend(coinItem: CoinItem, position: Int) {
         //edit text with email
         val builder = AlertDialog.Builder(mContext)
@@ -313,7 +314,7 @@ class WalletFragment : Fragment() {
 
                         // notification to store in the database
                         val note = HashMap<String, Any>()
-                        note[mAuth.currentUser!!.email!!] = "${mAuth.currentUser!!.email} sent you $currentGold gold!"
+                        note[mAuth.currentUser!!.email!!] = "${mAuth.currentUser!!.email} sent you $coinInGold gold!"
 
                         userBankRef.set(gold)
                                 .addOnSuccessListener { _ ->
@@ -332,16 +333,9 @@ class WalletFragment : Fragment() {
                                 }
                         userNoteRef.set(note, SetOptions.merge())
                                 .addOnSuccessListener { _ ->
-                                    Toast.makeText(mContext,
-                                            "Notified user!",
-                                            Toast.LENGTH_SHORT)
-                                            .show()
+                                    Log.d("Wallet Fragment", "Notified User")
                                 }
                                 .addOnFailureListener { e ->
-                                Toast.makeText(mContext,
-                                    "Failed to notify user",
-                                    Toast.LENGTH_SHORT)
-                                    .show()
                                     Log.d("Wallet Fragment", e.toString())
                                 }
                     }
