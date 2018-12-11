@@ -1,6 +1,7 @@
 package com.example.s1623165.coinz
 
 import android.app.ProgressDialog.show
+import android.content.ClipData
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
@@ -134,13 +135,13 @@ class WalletFragment : Fragment() {
         recyclerView.layoutManager = this.layoutManager
         recyclerView.adapter = this.adapter
         adapter.setOnItemClickListener { position: Int ->
-            showDialogueBank(wallet[position])
+            showDialogueBank(wallet[position], position)
         }
     }
 
     // present an alert dialogue when you want to bank a coin
     // if the current allowance is 0, do not allow the user to bank a coin
-    private fun showDialogueBank(coinItem: CoinItem) {
+    private fun showDialogueBank(coinItem: CoinItem, position : Int) {
         Log.d(tag, "dialogue for banking coin")
         val settings = activity!!.getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         val currentAllowance = settings.getInt("allowance",25)
@@ -157,7 +158,7 @@ class WalletFragment : Fragment() {
             builder.setTitle("Would you like to bank this coin?")
             builder.setMessage("This coin is worth $gold in gold.\nYou can bank $currentAllowance more coins today.")
             builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
-                bankCoin(coinItem)
+                bankCoin(coinItem, position)
             }
             builder.setNegativeButton("NO", { dialog: DialogInterface?, which: Int -> })
             builder.show()
@@ -165,7 +166,7 @@ class WalletFragment : Fragment() {
     }
 
     //This banks the coin the user has chosen
-    private fun bankCoin(coinItem: CoinItem) {
+    private fun bankCoin(coinItem: CoinItem, position : Int) {
         Log.d(tag, "Converting coin to gold and sending to bank")
 
         // current coin's value in gold
@@ -198,7 +199,7 @@ class WalletFragment : Fragment() {
                             Toast.LENGTH_SHORT)
                             .show()
                     //delete coin from database
-                    deleteCoinDatabase(coinItem)
+                    deleteCoinDatabase(coinItem, position)
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(mContext,
@@ -210,13 +211,13 @@ class WalletFragment : Fragment() {
     }
 
     // delete coin from the database and update the wallet
-    private fun deleteCoinDatabase(coinItem: CoinItem) {
+    private fun deleteCoinDatabase(coinItem: CoinItem, position : Int) {
         val deleteCoin = HashMap<String,Any>()
         deleteCoin[coinItem.id] = FieldValue.delete()
         walletReference.update(deleteCoin)
                 .addOnSuccessListener { _ ->
-                    wallet.remove(coinItem)
-                    adapter.notifyItemRemoved(wallet.indexOf(coinItem))
+                    wallet.removeAt(position)
+                    adapter.notifyItemRemoved(position)
                 }
     }
 

@@ -137,8 +137,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 editor.putString("lastDownloadDate", currentDate)
                 editor.putString("geoJson", geoJsonString)
                 editor.putInt("allowance",25)
+                editor.putBoolean("Rainbow Coin", false)
                 editor.apply()
-
                 setExchangeRates()
                 setCoinz()
                 showDownloadSuccessful()
@@ -217,7 +217,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             map?.uiSettings?.isZoomControlsEnabled = true
             enableLocation()
             initialiseCoinMarkers()
-            initialiseRainbowCoin()
+            val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
+            if(settings.getBoolean("Rainbow Coin", false)) {
+                initialiseRainbowCoin()
+            }
         }
     }
 
@@ -411,6 +414,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             // store gold in bank
             val editor = settings.edit()
             editor.putInt("Bank", totalGold)
+            editor.putBoolean("Rainbow Coin", true)
             editor.apply()
 
             db.collection("Users")

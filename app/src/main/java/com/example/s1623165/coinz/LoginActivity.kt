@@ -11,6 +11,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
+import com.example.s1623165.coinz.R.id.toolbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.FirebaseFirestore
@@ -67,13 +68,13 @@ class LoginActivity : AppCompatActivity() {
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Toast.makeText(this,
-                                    "Login successful",
+                                    "Login successful!",
                                     Toast.LENGTH_SHORT)
                                     .show()
                             getGold()
                         } else {
                             Toast.makeText(this,
-                                    "Login failed",
+                                    "Login failed! Not signed up!",
                                     Toast.LENGTH_SHORT)
                                     .show()
                         }
