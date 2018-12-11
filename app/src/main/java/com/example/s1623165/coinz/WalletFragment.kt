@@ -294,11 +294,14 @@ class WalletFragment : Fragment() {
         val exchangeRate = exchangeRates[coinItem.title]!!
         var coinInGold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
 
-        val userRef = db.collection("Users")
+        val userBankRef = db.collection("Users")
                 .document(email).collection("User Information")
                 .document("Bank")
+        val userNoteRef = db.collection("Users")
+                .document(email).collection("User Information")
+                .document("Notifications")
 
-        userRef.get()
+        userBankRef.get()
                 .addOnSuccessListener { documentSnapshot ->
                     if(documentSnapshot.exists()) {
                         val currentGold = documentSnapshot["Gold"] as Number
@@ -307,7 +310,12 @@ class WalletFragment : Fragment() {
                         // gold to store in database
                         val gold = HashMap<String, Any>()
                         gold["Gold"] = totalGold
-                        userRef.set(gold)
+
+                        // notification to store in the database
+                        val note = HashMap<String, Any>()
+                        note[mAuth.currentUser!!.email!!] = "${mAuth.currentUser!!.email} sent you $currentGold gold!"
+
+                        userBankRef.set(gold)
                                 .addOnSuccessListener { _ ->
                                     Toast.makeText(mContext,
                                             "Gold successfully sent to $email!",
@@ -320,7 +328,21 @@ class WalletFragment : Fragment() {
                                             "Error sending gold, please try again later",
                                             Toast.LENGTH_SHORT)
                                             .show()
-                                    Log.d("Wallet Preference", e.toString())
+                                    Log.d("Wallet Fragment", e.toString())
+                                }
+                        userNoteRef.set(note, SetOptions.merge())
+                                .addOnSuccessListener { _ ->
+                                    Toast.makeText(mContext,
+                                            "Notified user!",
+                                            Toast.LENGTH_SHORT)
+                                            .show()
+                                }
+                                .addOnFailureListener { e ->
+                                Toast.makeText(mContext,
+                                    "Failed to notify user",
+                                    Toast.LENGTH_SHORT)
+                                    .show()
+                                    Log.d("Wallet Fragment", e.toString())
                                 }
                     }
                 }

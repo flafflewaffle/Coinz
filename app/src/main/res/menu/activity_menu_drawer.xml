@@ -15,7 +15,7 @@
         <item
             android:id="@+id/nav_send_receive"
             android:icon="@drawable/ic_send_24dp"
-            android:title="Send/Receive Coinz" />
+            android:title="Received Gold" />
     </group>
 
 </menu>
