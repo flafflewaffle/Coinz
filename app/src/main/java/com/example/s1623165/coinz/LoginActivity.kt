@@ -131,7 +131,7 @@ class LoginActivity : AppCompatActivity() {
                             "Error registering bank to user",
                             Toast.LENGTH_SHORT)
                             .show()
-                    Log.d("Signup Activity", e.toString())
+                    Log.d("Login Activity", e.toString())
                 }
     }
 

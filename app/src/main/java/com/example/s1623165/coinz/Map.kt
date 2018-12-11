@@ -23,6 +23,7 @@ import com.example.s1623165.coinz.R.id.*
 import com.google.common.base.CharMatcher.inRange
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.gson.Gson
@@ -81,6 +82,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private lateinit var permissionsManager : PermissionsManager
     private lateinit var mAuth : FirebaseAuth
     private lateinit var db : FirebaseFirestore
+    private lateinit var walletReference: DocumentReference
+    private lateinit var bankReference: DocumentReference
     private lateinit var magicCoin : LatLng
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,6 +94,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         setSupportActionBar(toolbar)
         mAuth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
+        walletReference = db.collection("Users").document(mAuth.uid!!)
+                .collection("User Information").document("Wallet")
+        bankReference = db.collection("Users").document(mAuth.uid!!)
+                .collection("User Information").document("Bank")
 
         fab.setOnClickListener { _ -> menu() }
 
@@ -127,6 +134,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 // clear map of previous coins and save the geojson
                 // update the last download date and set coins, icons and exchange rates
                 clearMapCoins()
+
                 // set rainbow coin
                 val lat = Random().nextDouble()*(latmax - latmin) + latmin
                 val lon = Random().nextDouble()*(lonmax - lonmin) + lonmin
@@ -358,22 +366,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             val idCoinMap = HashMap<String, Any>()
             idCoinMap[coin.id] = coin.toString()
 
-            db.collection("Users")
-                .document(mAuth.uid!!)
-                .collection("User Information")
-                .document("Wallet")
-                .set(idCoinMap, SetOptions.merge())
+            walletReference.set(idCoinMap, SetOptions.merge())
                     .addOnSuccessListener { _ ->
                         Toast.makeText(this,
                                 "Coin collected",
                                 Toast.LENGTH_SHORT)
                                 .show()
-
-                        // remove coin from map
-                        val settingsMap = getSharedPreferences("map", Context.MODE_PRIVATE)
-                        val editorMap = settingsMap.edit()
-                        editorMap.remove(coin.id)
-                        editorMap.apply()
                         map?.removeMarker(marker)
                     }
                     .addOnFailureListener { e ->
@@ -409,7 +407,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             val totalGold = currentGold+100
 
             val gold = HashMap<String, Any>()
-            gold.put("Gold", totalGold)
+            gold["Gold"] = totalGold
 
             // store gold in bank
             val editor = settings.edit()
@@ -417,11 +415,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             editor.putBoolean("Rainbow Coin", true)
             editor.apply()
 
-            db.collection("Users")
-                    .document(mAuth.uid!!)
-                    .collection("User Information")
-                    .document("Bank")
-                    .set(gold)
+            bankReference.set(gold)
                     .addOnSuccessListener { _ ->
                         Toast.makeText(this,
                                 "Rainbow Coin succesfully collected!",
@@ -514,22 +508,74 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     }
 
     // initialise all coin markers from those stored in shared preferences under 'map'
+    // if the coin is collected and stored in your wallet, do not display the marker
+    // if the wallet has not been initialised for a user, initialise the wallet with the simple value
+    // of exists = true
     private fun initialiseCoinMarkers() {
         Log.d(tag, "Inititalising Coin Markers")
         // Retrieve all coins as json from sharedpreferences
         val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
-        val coinz = settings.all
-        for (k in coinz.keys) {
-            // for each coin, add  a marker to the map with the relevant information
-            val coinJson = coinz.get(k) as String
-            val gson = Gson()
-            val coin = gson.fromJson(coinJson, Coin::class.java)
-            map?.addMarker(MarkerOptions()
-                .position(coin.location)
-                .title(coin.currency)
-                .snippet(coin.id)
-                .icon(coinMarkerIcons[coin.currency]))
-        }
+        val coinzMap = settings.all
+
+        //if the wallet already exists, ignore coins collected when displaying markers on the map
+        walletReference.get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if(documentSnapshot.exists()) {
+                        val coinzData = documentSnapshot.data!!
+                        for (k in coinzMap.keys) {
+                            // for each coin, add  a marker to the map with the relevant information
+                            Log.d(tag, k+": ${coinzData.containsKey(k)}")
+                            if(!coinzData.containsKey(k)) {
+                                val coinJson = coinzMap[k] as String
+                                val gson = Gson()
+                                val coin = gson.fromJson(coinJson, Coin::class.java)
+                                map?.addMarker(MarkerOptions()
+                                        .position(coin.location)
+                                        .title(coin.currency)
+                                        .snippet(coin.id)
+                                        .icon(coinMarkerIcons[coin.currency]))
+                            }
+                        }
+                    } else {
+                        // if the wallet does not exist, initialise in the database with exists = true
+                        // and initialise all coin map markers onto the map
+                        val wallet = HashMap<String, Any>()
+                        wallet["Exists"] = true
+                        walletReference.set(wallet)
+                                .addOnSuccessListener { _ ->
+                                    Toast.makeText(this,
+                                            "Wallet successfully setup for user",
+                                            Toast.LENGTH_SHORT)
+                                            .show()
+                                    for (k in coinzMap.keys) {
+                                        // for each coin, add  a marker to the map with the relevant information
+                                        val coinJson = coinzMap[k] as String
+                                        val gson = Gson()
+                                        val coin = gson.fromJson(coinJson, Coin::class.java)
+                                        map?.addMarker(MarkerOptions()
+                                                .position(coin.location)
+                                                .title(coin.currency)
+                                                .snippet(coin.id)
+                                                .icon(coinMarkerIcons[coin.currency]))
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(this,
+                                            "Error registering wallet to user",
+                                            Toast.LENGTH_SHORT)
+                                            .show()
+                                    Log.d(tag, e.toString())
+                                }
+                    }
+
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this,
+                            "Error accessing coins collected",
+                            Toast.LENGTH_SHORT)
+                            .show()
+                    Log.d("WalletFragment", e.toString())
+                }
     }
 
     // initialise rainbow coin marker

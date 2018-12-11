@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.android.synthetic.main.activity_sign_up.*
@@ -35,10 +36,10 @@ class SignUpActivity : AppCompatActivity() {
         signup.setOnClickListener { _ ->
             if(validateDetails()) {
                 //Upload data to database
-                val user_email = email.text.toString().trim()
-                val user_password = password.text.toString().trim()
+                val userEmail = email.text.toString().trim()
+                val userPassword = password.text.toString().trim()
 
-                mAuth.createUserWithEmailAndPassword(user_email, user_password)
+                mAuth.createUserWithEmailAndPassword(userEmail, userPassword)
                         .addOnCompleteListener { task ->
                             if(task.isSuccessful) {
                                 Toast.makeText(this,
@@ -47,10 +48,18 @@ class SignUpActivity : AppCompatActivity() {
                                         .show()
                                 super.onBackPressed()
                             } else {
-                                Toast.makeText(this,
-                                        "Registration Failed",
-                                        Toast.LENGTH_SHORT)
-                                        .show()
+                                if (task.exception is FirebaseAuthUserCollisionException) {
+                                    Toast.makeText(this,
+                                            "User with this email already exist.",
+                                            Toast.LENGTH_SHORT)
+                                            .show()
+                                }
+                                else {
+                                    Toast.makeText(this,
+                                            "Registration Failed",
+                                            Toast.LENGTH_SHORT)
+                                            .show()
+                                }
                             }
                         }
             }
@@ -68,6 +77,13 @@ class SignUpActivity : AppCompatActivity() {
         if(pass.isEmpty() || email.isEmpty()) {
             Toast.makeText(this,
                     "Please enter valid credentials.",
+                    Toast.LENGTH_SHORT)
+                    .show()
+            return false
+        }
+        if(pass.length < 6) {
+            Toast.makeText(this,
+                    "Please enter a password of at least 6 characters.",
                     Toast.LENGTH_SHORT)
                     .show()
             return false

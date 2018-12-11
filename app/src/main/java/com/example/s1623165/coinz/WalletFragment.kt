@@ -221,4 +221,23 @@ class WalletFragment : Fragment() {
                 }
     }
 
+    private fun checkEmail(email : String) {
+        mAuth.fetchSignInMethodsForEmail(email)
+                .addOnCompleteListener { task ->
+                    if(task.isSuccessful) {
+                        Toast.makeText(mContext,
+                                "User exists",
+                                Toast.LENGTH_SHORT)
+                                .show()
+                    }
+                    else {
+                        Toast.makeText(mContext,
+                                "This user does not exist, please enter a valid email.",
+                                Toast.LENGTH_SHORT)
+                                .show()
+                    }
+
+        }
+    }
+
 }
