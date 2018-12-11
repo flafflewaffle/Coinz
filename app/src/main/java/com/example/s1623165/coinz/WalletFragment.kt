@@ -119,6 +119,9 @@ class WalletFragment : Fragment() {
     // sets the wallet by retrieving lal the coins from the database
     private fun setWallet() {
         for (key: String in coins.keys) {
+            if(key.equals("Exists")) {
+                continue
+            }
             val coinJson = coins[key] as String
             val gson = Gson()
             val coin = gson.fromJson(coinJson, Coin::class.java)
