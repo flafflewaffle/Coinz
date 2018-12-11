@@ -178,10 +178,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 showDialogueExchangeRates()
                 return true
             }
-            R.id.action_settings -> {
-                settings()
-                return true
-            }
             R.id.action_logout -> {
                 showDialogueLogout()
                 return true
@@ -198,6 +194,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             map = mapboxMap
             // present relevant dialogues if the coin in question is in range or not
             map?.setOnMarkerClickListener { marker ->
+                //different functionality for clicking on a rianbow coin
                 if(marker.title.equals(rainbowCoin)) {
                     if(inRange(marker))
                     {
@@ -696,11 +693,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     fun menu() {
         val menuIntent = Intent(this, MenuActivity::class.java)
         startActivity(menuIntent)
-    }
-
-    fun settings() {
-        val settingsIntent = Intent(this, SettingsActivity::class.java)
-        startActivity(settingsIntent)
     }
 
     fun login() {

@@ -8,13 +8,8 @@
         android:title="Exchange Rates"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="200"
-        android:title="Settings"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/action_logout"
-        android:orderInCategory="300"
+        android:orderInCategory="200"
         android:title="Logout"
         app:showAsAction="never" />
 </menu>
