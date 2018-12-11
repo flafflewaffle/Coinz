@@ -24,6 +24,9 @@ import kotlinx.android.synthetic.main.app_bar_menu.*
 class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        //set listeners and default opening fragment to wallet
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
         setSupportActionBar(toolbar)
@@ -43,6 +46,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     }
 
+    //close navigation drawer on back pressed
     override fun onBackPressed() {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START)
@@ -51,6 +55,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
+    //display corresponding fragment, wallet fragment is the default
     fun displayFragment(id: Int) {
         val fragment = when (id) {
             R.id.nav_wallet -> {

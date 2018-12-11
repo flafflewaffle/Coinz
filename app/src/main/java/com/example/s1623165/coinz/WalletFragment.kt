@@ -49,9 +49,9 @@ class WalletFragment : Fragment() {
         super.onCreate(savedInstanceState)
         mAuth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
-        walletReference = db.collection("Users").document(mAuth.uid!!)
+        walletReference = db.collection("Users").document(mAuth.currentUser!!.email!!)
                 .collection("User Information").document("Wallet")
-        bankReference = db.collection("Users").document(mAuth.uid!!)
+        bankReference = db.collection("Users").document(mAuth.currentUser!!.email!!)
                 .collection("User Information").document("Bank")
         setCurrencyMap()
         setExchangeRates()
@@ -78,8 +78,7 @@ class WalletFragment : Fragment() {
                 .addOnSuccessListener { documentSnapshot ->
                     if (documentSnapshot.exists()) {
                         coins = documentSnapshot.data!!
-
-                        if(coins.isEmpty()) {
+                        if(coins.size == 1) {
                             Toast.makeText(mContext,
                                     "Wallet is empty, collect coins to view them here!",
                                     Toast.LENGTH_SHORT)
@@ -224,23 +223,27 @@ class WalletFragment : Fragment() {
                 }
     }
 
-    private fun checkEmail(email : String) {
-        mAuth.fetchSignInMethodsForEmail(email)
-                .addOnCompleteListener { task ->
-                    if(task.isSuccessful) {
-                        Toast.makeText(mContext,
-                                "User exists",
-                                Toast.LENGTH_SHORT)
-                                .show()
+
+    private fun checkEmail(email : String, coinItem: CoinItem) {
+        db.collection("Users").document(email).get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if(documentSnapshot.exists()) {
+                        //send coin
                     }
                     else {
                         Toast.makeText(mContext,
-                                "This user does not exist, please enter a valid email.",
+                                "Please enter a valid email!",
                                 Toast.LENGTH_SHORT)
                                 .show()
                     }
-
-        }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(mContext,
+                            "Error viewing user information",
+                            Toast.LENGTH_SHORT)
+                            .show()
+                    Log.d(tag, e.toString())
+                }
     }
 
 }

@@ -96,11 +96,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         setSupportActionBar(toolbar)
         mAuth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
-        walletReference = db.collection("Users").document(mAuth.uid!!)
+
+        walletReference = db.collection("Users").document(mAuth.currentUser!!.email!!)
                 .collection("User Information").document("Wallet")
-        bankReference = db.collection("Users").document(mAuth.uid!!)
+        bankReference = db.collection("Users").document(mAuth.currentUser!!.email!!)
                 .collection("User Information").document("Bank")
-        rainbowReference = db.collection("Users").document(mAuth.uid!!)
+        rainbowReference = db.collection("Users").document(mAuth.currentUser!!.email!!)
                 .collection("User Information").document("Rainbow Coin")
 
         // set rainbow coin
@@ -613,6 +614,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     }
 
     // initialise rainbow coin marker
+    // if the rainbow coin collection status has not been initialised in the database, set it
     private fun initialiseRainbowCoin() {
         rainbowReference.get()
                 .addOnSuccessListener { documentSnapshot ->

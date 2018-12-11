@@ -84,7 +84,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun getGold() {
         db.collection("Users")
-                .document(mAuth.uid!!)
+                .document(mAuth.currentUser!!.email!!)
                 .collection("User Information")
                 .document("Bank")
                 .get()
@@ -115,7 +115,7 @@ class LoginActivity : AppCompatActivity() {
         gold["Gold"] = 0
 
         db.collection("Users")
-                .document(mAuth.uid!!)
+                .document(mAuth.currentUser!!.email!!)
                 .collection("User Information")
                 .document("Bank")
                 .set(gold)
