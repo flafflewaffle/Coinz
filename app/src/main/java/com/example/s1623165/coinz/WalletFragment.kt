@@ -15,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Adapter
 import android.widget.Toast
+import com.example.s1623165.coinz.R.id.exchangeRates
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
@@ -172,7 +173,7 @@ class WalletFragment : Fragment() {
         Log.d(tag, "Converting coin to gold and sending to bank")
 
         // current coin's value in gold
-        val exchangeRate = exchangeRates.get(coinItem.title)!!
+        val exchangeRate = exchangeRates[coinItem.title]!!
         var coinInGold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
 
         //calculating total gold by adding the current coin's value in gold + current amount of gold in bank
@@ -184,7 +185,7 @@ class WalletFragment : Fragment() {
 
         // gold to store in database
         val gold = HashMap<String, Any>()
-        gold.put("Gold", totalGold)
+        gold["Gold"] = totalGold
         Log.d(tag, "Total gold collected$totalGold")
 
         // store gold in bank, update current allowance in shared prefs
@@ -223,12 +224,34 @@ class WalletFragment : Fragment() {
                 }
     }
 
+    // present an alert dialogue when you want to send a coin to another user
+    private fun sendToFriends(coinItem: CoinItem, position : Int) {
+        Log.d(tag, "Dialogue for sending coin to a user")
+            val builder = AlertDialog.Builder(mContext)
+            val exchangeRate = exchangeRates.get(coinItem.title)!!
+            val gold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
+            builder.setTitle("Would you like to send this coin to a friend?")
+            builder.setMessage("This coin is worth $gold in gold.")
+            builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
+                chooseFriend(coinItem, position)
+            }
+            builder.setNegativeButton("NO", { dialog: DialogInterface?, which: Int -> })
+            builder.show()
+    }
 
-    private fun checkEmail(email : String, coinItem: CoinItem) {
+
+    private fun chooseFriend(coinItem: CoinItem, position: Int) {
+        //edit text with email
+        val email = ""
+        checkEmail(email, coinItem, position)
+    }
+
+    //checks if the entered email address exists within the database
+    private fun checkEmail(email : String, coinItem: CoinItem, position: Int) {
         db.collection("Users").document(email).get()
                 .addOnSuccessListener { documentSnapshot ->
                     if(documentSnapshot.exists()) {
-                        //send coin
+                        sendCoin(email, coinItem, position)
                     }
                     else {
                         Toast.makeText(mContext,
@@ -243,6 +266,51 @@ class WalletFragment : Fragment() {
                             Toast.LENGTH_SHORT)
                             .show()
                     Log.d(tag, e.toString())
+                }
+    }
+
+    //if the email address is valid, exchanges the coin into gold and sends the gold to the user
+    private fun sendCoin(email : String, coinItem: CoinItem, position: Int) {
+        // current coin's value in gold
+        val exchangeRate = exchangeRates[coinItem.title]!!
+        var coinInGold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
+
+        val userRef = db.collection("Users")
+                .document(email).collection("User Information")
+                .document("Bank")
+
+        userRef.get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if(documentSnapshot.exists()) {
+                        val currentGold = documentSnapshot["Gold"] as Number
+                        val totalGold = currentGold.toInt() + coinInGold
+
+                        // gold to store in database
+                        val gold = HashMap<String, Any>()
+                        gold["Gold"] = totalGold
+                        userRef.set(gold)
+                                .addOnSuccessListener { _ ->
+                                    Toast.makeText(mContext,
+                                            "Gold successfully sent to user!",
+                                            Toast.LENGTH_SHORT)
+                                            .show()
+                                    deleteCoinDatabase(coinItem, position)
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(mContext,
+                                            "Error sending gold, please try again later",
+                                            Toast.LENGTH_SHORT)
+                                            .show()
+                                    Log.d("Wallet Preference", e.toString())
+                                }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(mContext,
+                            "Error viewing user's bank, please try again later",
+                            Toast.LENGTH_SHORT)
+                            .show()
+                    Log.d("Wallet Preference", e.toString())
                 }
     }
 
