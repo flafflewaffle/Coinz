@@ -43,6 +43,8 @@ class WalletFragment : Fragment() {
     private lateinit var adapter: WalletAdapter
     private lateinit var layoutManager: RecyclerView.LayoutManager
 
+    //---------------INITIALISATION---------------//
+
     override fun onAttach(context: Context?) {
         super.onAttach(context)
         this.mContext = context!!
@@ -67,6 +69,8 @@ class WalletFragment : Fragment() {
         recyclerView = root.findViewById(R.id.recyclerView)
         return root
     }
+
+    //---------------SETTER FUNCTIONS---------------//
 
     // set map of currencies to image resources
     private fun setCurrencyMap() {
@@ -129,7 +133,7 @@ class WalletFragment : Fragment() {
         }
     }
 
-    // set the allowance to 25 if not set
+    // set the allowance to 25 if not set, otherwise set it to 25 - the number of coins collected
     private fun setAllowance(coinsCollected : Int) {
         val allowance = HashMap<String, Any>()
         allowance["Allowance"] = 25-coinsCollected
@@ -143,6 +147,7 @@ class WalletFragment : Fragment() {
                 }
     }
 
+    //retrieves the current allowance from the database
     private fun getAllowance() {
         bankReference.get()
                 .addOnSuccessListener { documentSnapshot ->
@@ -165,11 +170,13 @@ class WalletFragment : Fragment() {
 
     // builds the recycler view and sets the on click listener
     private fun buildRecyclerView() {
+        // initialise recycler view and adapter
         layoutManager = LinearLayoutManager(mContext)
         adapter = WalletAdapter(wallet)
         recyclerView.layoutManager = this.layoutManager
         recyclerView.adapter = this.adapter
 
+        //set on click listeners for banking and sending coins to friends
         adapter.setOnItemClickListener { position: Int ->
             showDialogueBank(wallet[position], position)
         }
@@ -178,6 +185,8 @@ class WalletFragment : Fragment() {
             showDialogueSendCoin(wallet[position], position)
         }
     }
+
+    //---------------BANKING COIN---------------//
 
     // present an alert dialogue when you want to bank a coin
     // if the current allowance is 0, do not allow the user to bank a coin
@@ -260,6 +269,8 @@ class WalletFragment : Fragment() {
                     adapter.notifyItemRemoved(position)
                 }
     }
+
+    //---------------SENDING COIN---------------//
 
     // present an alert dialogue when you want to send a coin to another user
     private fun showDialogueSendCoin(coinItem: CoinItem, position : Int) {

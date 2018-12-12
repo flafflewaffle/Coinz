@@ -67,6 +67,9 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_send_receive -> {
                 SendReceiveFragment()
             }
+            R.id.nav_powerup -> {
+                Powerup_Fragment()
+            }
             else -> {
                 WalletFragment()
             }

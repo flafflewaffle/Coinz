@@ -67,6 +67,9 @@ public final class Coin {
         Gson gson  = new Gson();
         return gson.toJson(this);
     }
+
+    public void setValue(double newValue) { this.value = newValue; }
+    public void setCurrency(String newValue) { this.currency = newValue; }
 }
 
 

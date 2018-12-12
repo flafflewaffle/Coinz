@@ -33,6 +33,7 @@ class SignUpActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         setUpUIViews()
 
+        // retrieves the user email and password and creates a new user in the database
         signup.setOnClickListener { _ ->
             if(validateDetails()) {
                 //Upload data to database
@@ -71,6 +72,7 @@ class SignUpActivity : AppCompatActivity() {
 
     }
 
+    // simple check to make sure user email and password is valid
     private fun validateDetails() : Boolean {
         val pass = password.text.toString()
         val email = email.text.toString()
@@ -91,6 +93,7 @@ class SignUpActivity : AppCompatActivity() {
         return true
     }
 
+    // sets the views of variables
     private fun setUpUIViews() {
         password = findViewById(R.id.signup_password)
         email = findViewById(R.id.signup_email)

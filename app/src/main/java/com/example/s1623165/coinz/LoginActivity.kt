@@ -50,6 +50,7 @@ class LoginActivity : AppCompatActivity() {
 
     }
 
+    //sets the views for variables
     private fun setUpUIViews() {
         email = findViewById(R.id.login_email)
         password = findViewById(R.id.login_password)
@@ -57,6 +58,7 @@ class LoginActivity : AppCompatActivity() {
         signup = findViewById(R.id.signUp_button)
     }
 
+    //checks if the user email and password is valid and logs in
     private fun validate(userEmail : String, userPassword : String) {
         if(userEmail.isEmpty() || userPassword.isEmpty()) {
             Toast.makeText(this,
@@ -83,6 +85,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    //gets the amount of gold from the bank, if this is not set, sets the bank
     private fun getGold() {
         db.collection("Users")
                 .document(mAuth.currentUser!!.email!!)
@@ -116,6 +119,7 @@ class LoginActivity : AppCompatActivity() {
                 }
     }
 
+    //sets the allowance and gold values in the bank
     private fun setBank() {
         val gold = HashMap<String, Any>()
         gold["Gold"] = 0
@@ -141,6 +145,7 @@ class LoginActivity : AppCompatActivity() {
                 }
     }
 
+    //navigation functions
     fun map() {
         val menuIntent = Intent(this, Map::class.java)
         startActivity(menuIntent)

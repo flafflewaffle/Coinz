@@ -82,6 +82,7 @@ class SendReceiveFragment : Fragment() {
                 }
     }
 
+    //add new Notification items to the list of notifications
     private fun setNotifications() {
         for (key: String in noteMap.keys) {
             val note = noteMap[key] as String
@@ -89,7 +90,7 @@ class SendReceiveFragment : Fragment() {
         }
     }
 
-    // builds the recycler view and sets the on click listener
+    // builds the recycler view
     private fun buildRecyclerView() {
         layoutManager = LinearLayoutManager(mContext)
         adapter = NotificationsAdapter(notifications)

@@ -65,6 +65,8 @@ import kotlin.math.roundToLong
 
 class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
+    //---------------VARIABLES---------------//
+
     private val tag = "MapActivity"
     private val prefsFile = "MyPrefsFile"
     private val rainbowCoin = "Rainbow Coin!"
@@ -89,6 +91,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private lateinit var rainbowReference: DocumentReference
     private lateinit var collectedReference: DocumentReference
     private lateinit var magicCoin : LatLng
+
+    //---------------INITIALISATION---------------//
 
     override fun onCreate(savedInstanceState: Bundle?) {
         //initialise mapview, firebase and current date
@@ -150,6 +154,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 // a new day!
                 // clear map of previous coins and save the geojson
                 // update the last download date and set coins, icons and exchange rates
+                // update the powerups to be purchaseable once again
                 clearMapCoins()
                 // update shared preference
                 val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
@@ -157,6 +162,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 editor.putString("lastDownloadDate", currentDate)
                 editor.putString("geoJson", geoJsonString)
                 editor.putBoolean("Rainbow Coin", false)
+                editor.putBoolean("Randomise Currencies!", false)
+                editor.putBoolean("Randomise Exchange Rates!", false)
+                editor.putBoolean("Double Coins!", false)
+                editor.putBoolean("Double Wallet!", false)
                 editor.apply()
                 // call setters
                 setAllowance()
@@ -241,7 +250,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         }
     }
 
+
     //---------------LOCATIONS AND PERMISSION---------------//
+
 
     @SuppressLint("MissingPermission")
     // enables the location using location component
@@ -293,7 +304,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         }
     }
 
+
     //---------------SETTERS FOR MAP AND DATABASE VALUES---------------//
+
 
     // read and store exchange rates from the geojson string
     private fun setExchangeRates() {
@@ -465,7 +478,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 }
     }
 
-    //---------------DIALOGUES---------------//
+
+    //---------------ALERT DIALOGUES---------------//
+
 
     //present an alert dialogue when a new map is successfully downloaded
     private fun showDownloadSuccessful() {
@@ -473,7 +488,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("New Coin Map Downloaded")
         builder.setMessage("Today's Exchange Rates\n\n"+getExchangeRates())
-        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.setPositiveButton("OK"){dialog: DialogInterface?, which: Int -> }
         builder.show()
     }
 
@@ -483,7 +498,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Exchange Rates")
         builder.setMessage(getExchangeRates())
-        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.setPositiveButton("OK"){dialog: DialogInterface?, which: Int -> }
         builder.show()
     }
 
@@ -493,7 +508,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Unable to connect to network")
         builder.setMessage("Unable to load today's map, please check your network connection and refresh the app.")
-        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.setPositiveButton("OK"){dialog: DialogInterface?, which: Int -> }
         builder.show()                                                               
     }
 
@@ -503,7 +518,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Coin Not In Range")
         builder.setMessage("Coin: ${coin.currency} \nValue: ${coin.value}")
-        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.setPositiveButton("OK"){dialog: DialogInterface?, which: Int -> }
         builder.show()
     }
 
@@ -545,7 +560,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                         Log.d(tag, e.toString())
                     }
         }
-        builder.setNegativeButton("No", {dialog: DialogInterface?, which: Int -> })
+        builder.setNegativeButton("No") { dialog: DialogInterface?, which: Int -> }
         builder.show()
     }
 
@@ -555,7 +570,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("A Mysterious Coin in Sight!")
         builder.setMessage("This coin is not like the others... However you are not in range to pick it up! Let's get a bit closer.")
-        builder.setPositiveButton("OK", {dialog: DialogInterface?, which: Int -> })
+        builder.setPositiveButton("OK"){dialog: DialogInterface?, which: Int -> }
         builder.show()
     }
 
@@ -631,11 +646,13 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             finish()
             login()
         }
-        builder.setNegativeButton("No", {dialog: DialogInterface?, which: Int ->})
+        builder.setNegativeButton("No"){dialog: DialogInterface?, which: Int ->}
         builder.show()
     }
 
+
     //---------------HELPER FUNCTIONS---------------//
+
 
     // check if coin is within range to location
     @SuppressWarnings("MissingPermission")
@@ -774,6 +791,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         return "QUID: $quid \nDOLR: $dolr \nPENY: $peny \nSHIL: $shil"
     }
 
+    //navigation functions
     fun menu() {
         val menuIntent = Intent(this, MenuActivity::class.java)
         startActivity(menuIntent)

@@ -16,6 +16,10 @@
             android:id="@+id/nav_send_receive"
             android:icon="@drawable/ic_send_24dp"
             android:title="Notifications" />
+        <item
+            android:id="@+id/nav_powerup"
+            android:icon="@drawable/ic_stars_black_24dp"
+            android:title="Power Ups" />
     </group>
 
 </menu>
