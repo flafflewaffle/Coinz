@@ -122,6 +122,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
         currentDate = getDate()
         setIcons()
+        setWallet()
     }
 
     @SuppressWarnings("MissingPermission")
@@ -146,16 +147,19 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 showDialogueBadNetworkConnection()
             }
             else {
+                // a new day!
                 // clear map of previous coins and save the geojson
                 // update the last download date and set coins, icons and exchange rates
                 clearMapCoins()
+                // update shared preference
                 val settings = getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
                 val editor = settings.edit()
                 editor.putString("lastDownloadDate", currentDate)
                 editor.putString("geoJson", geoJsonString)
-                editor.putInt("allowance",25)
                 editor.putBoolean("Rainbow Coin", false)
                 editor.apply()
+                // call setters
+                setAllowance()
                 setExchangeRates()
                 setCoinz()
                 setCollected()
@@ -237,7 +241,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         }
     }
 
-    // LOCATIONS AND PERMISSION
+    //---------------LOCATIONS AND PERMISSION---------------//
 
     @SuppressLint("MissingPermission")
     // enables the location using location component
@@ -289,7 +293,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         }
     }
 
-    // SETTERS FOR MAP AND DATABASE VALUES
+    //---------------SETTERS FOR MAP AND DATABASE VALUES---------------//
 
     // read and store exchange rates from the geojson string
     private fun setExchangeRates() {
@@ -447,7 +451,21 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 }
     }
 
-    // DIALOGUES
+    // reset the allowance to 25 on a new day
+    private fun setAllowance() {
+        val allowance = HashMap<String, Any>()
+        allowance["Allowance"] = 25
+
+        bankReference.set(allowance, SetOptions.merge())
+                .addOnSuccessListener {
+                    Log.d(tag, "Bank successfully setup for user")
+                }
+                .addOnFailureListener { e ->
+                    Log.d(tag, e.toString())
+                }
+    }
+
+    //---------------DIALOGUES---------------//
 
     //present an alert dialogue when a new map is successfully downloaded
     private fun showDownloadSuccessful() {
@@ -562,7 +580,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
             editor.putInt("Bank", totalGold)
             editor.apply()
 
-            bankReference.set(gold)
+            bankReference.set(gold, SetOptions.merge())
                     .addOnSuccessListener { _ ->
                         Toast.makeText(this,
                                 "500 gold has been added to your bank!",
@@ -617,7 +635,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         builder.show()
     }
 
-    // HELPER FUNCTIONS
+    //---------------HELPER FUNCTIONS---------------//
 
     // check if coin is within range to location
     @SuppressWarnings("MissingPermission")

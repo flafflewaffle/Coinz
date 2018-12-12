@@ -31,6 +31,7 @@ class WalletFragment : Fragment() {
     private var currencyImageMap = HashMap<String, Int>()
     private var exchangeRates = HashMap<String, String>()
     private val prefsFile = "MyPrefsFile"
+    private var currentAllowance = 25
 
     private lateinit var coins : MutableMap<String, Any>
     private lateinit var mContext: Context
@@ -58,6 +59,7 @@ class WalletFragment : Fragment() {
         setCurrencyMap()
         setExchangeRates()
         getCoins()
+        getAllowance()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -90,10 +92,6 @@ class WalletFragment : Fragment() {
                         buildRecyclerView()
                         Log.d("WalletFragment", "Wallet retrieved from Firestore with wallet size: ${wallet.size}")
                     } else {
-                        Toast.makeText(mContext,
-                                "Wallet does not exist",
-                                Toast.LENGTH_SHORT)
-                                .show()
                         Log.d("WalletFragment", "Wallet does not exist")
                     }
                 }
@@ -131,6 +129,40 @@ class WalletFragment : Fragment() {
         }
     }
 
+    // set the allowance to 25 if not set
+    private fun setAllowance(coinsCollected : Int) {
+        val allowance = HashMap<String, Any>()
+        allowance["Allowance"] = 25-coinsCollected
+        Log.d("Wallet Fragment", "Setting new allowance with $coinsCollected")
+        bankReference.set(allowance, SetOptions.merge())
+                .addOnSuccessListener {
+                    Log.d("Login Activity", "Bank successfully setup for user")
+                }
+                .addOnFailureListener { e ->
+                    Log.d("Login Activity", e.toString())
+                }
+    }
+
+    private fun getAllowance() {
+        bankReference.get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if(documentSnapshot.exists()) {
+                        val allow = documentSnapshot.get("Allowance")
+                        if(allow == null) {
+                            Log.d("Wallet Fragment", "allow is null")
+                            setAllowance(0)
+                        }
+                        else {
+                            currentAllowance = (allow as Number).toInt()
+                            Log.d("Wallet Fragment", "Get Allowance: $currentAllowance")
+                        }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.d("Wallet Fragment", e.toString())
+                }
+    }
+
     // builds the recycler view and sets the on click listener
     private fun buildRecyclerView() {
         layoutManager = LinearLayoutManager(mContext)
@@ -151,8 +183,8 @@ class WalletFragment : Fragment() {
     // if the current allowance is 0, do not allow the user to bank a coin
     private fun showDialogueBank(coinItem: CoinItem, position : Int) {
         Log.d(tag, "dialogue for banking coin")
-        val settings = activity!!.getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
-        val currentAllowance = settings.getInt("allowance",25)
+        getAllowance()
+
         if(currentAllowance == 0) {
             val builder = AlertDialog.Builder(mContext)
             builder.setTitle("Current Allowance Expended")
@@ -161,7 +193,7 @@ class WalletFragment : Fragment() {
             builder.show()
         } else {
             val builder = AlertDialog.Builder(mContext)
-            val exchangeRate = exchangeRates.get(coinItem.title)!!
+            val exchangeRate = exchangeRates[coinItem.title]!!
             val gold = (coinItem.description.toDouble() * exchangeRate.toDouble()).roundToInt()
             builder.setTitle("Would you like to bank this coin?")
             builder.setMessage("This coin is worth $gold in gold.\nYou can bank $currentAllowance more coins today.")
@@ -184,8 +216,7 @@ class WalletFragment : Fragment() {
         //calculating total gold by adding the current coin's value in gold + current amount of gold in bank
         val settings = activity!!.getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         val currentGold = settings.getInt("Bank", 0)
-        val currentAllowance = settings.getInt("allowance",25)
-
+        getAllowance()
         val totalGold = coinInGold + currentGold
 
         // gold to store in database
@@ -196,11 +227,12 @@ class WalletFragment : Fragment() {
         // store gold in bank, update current allowance in shared prefs
         val editor = settings.edit()
         editor.putInt("Bank", totalGold)
-        editor.putInt("allowance", (currentAllowance-1))
         editor.apply()
 
+        setAllowance(25-(currentAllowance-1))
+
         // store gold in database bank
-        bankReference.set(gold)
+        bankReference.set(gold, SetOptions.merge())
                 .addOnSuccessListener { _ ->
                     Toast.makeText(mContext,
                             "Coin cashed into bank",
@@ -316,7 +348,7 @@ class WalletFragment : Fragment() {
                         val note = HashMap<String, Any>()
                         note[mAuth.currentUser!!.email!!] = "${mAuth.currentUser!!.email} sent you $coinInGold gold!"
 
-                        userBankRef.set(gold)
+                        userBankRef.set(gold, SetOptions.merge())
                                 .addOnSuccessListener { _ ->
                                     Toast.makeText(mContext,
                                             "Gold successfully sent to $email!",

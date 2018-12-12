@@ -15,6 +15,7 @@ import com.example.s1623165.coinz.R.id.toolbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
@@ -90,12 +91,17 @@ class LoginActivity : AppCompatActivity() {
                 .get()
                 .addOnSuccessListener { documentSnapshot ->
                     if(documentSnapshot.exists()) {
-                        val gold = documentSnapshot.get("Gold") as Number
-                        val settings = getSharedPreferences("MyPrefsFile", Context.MODE_PRIVATE)
-                        val editor = settings.edit()
-                        editor.putInt("Bank", gold.toInt())
-                        editor.apply()
-                        map()
+                        val gold = documentSnapshot.get("Gold")
+                        if(gold == null) {
+                            setBank()
+                        }
+                        else {
+                            val settings = getSharedPreferences("MyPrefsFile", Context.MODE_PRIVATE)
+                            val editor = settings.edit()
+                            editor.putInt("Bank", (gold as Number).toInt())
+                            editor.apply()
+                            map()
+                        }
                     }
                     else {
                         setBank()
@@ -114,23 +120,23 @@ class LoginActivity : AppCompatActivity() {
         val gold = HashMap<String, Any>()
         gold["Gold"] = 0
 
-        db.collection("Users")
-                .document(mAuth.currentUser!!.email!!)
-                .collection("User Information")
-                .document("Bank")
-                .set(gold)
+        val allowance = HashMap<String, Any>()
+        allowance["Allowance"] = 25
+
+        val bankReference = db.collection("Users").document(mAuth.currentUser!!.email!!)
+                .collection("User Information").document("Bank")
+                bankReference.set(gold, SetOptions.merge())
                 .addOnSuccessListener { _ ->
-                    Toast.makeText(this,
-                            "Bank successfully setup for user",
-                            Toast.LENGTH_SHORT)
-                            .show()
-                    map()
+                    bankReference.set(allowance, SetOptions.merge())
+                            .addOnSuccessListener {
+                                Log.d("Login Activity", "Bank successfully setup for user")
+                                map()
+                            }
+                            .addOnFailureListener { e ->
+                                Log.d("Login Activity", e.toString())
+                            }
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this,
-                            "Error registering bank to user",
-                            Toast.LENGTH_SHORT)
-                            .show()
                     Log.d("Login Activity", e.toString())
                 }
     }
