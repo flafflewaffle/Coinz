@@ -55,7 +55,6 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     //display corresponding fragment, wallet fragment is the default
-
     fun displayFragment(id: Int) {
         val fragment = when (id) {
             R.id.nav_wallet -> {

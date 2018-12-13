@@ -653,7 +653,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         // calculate and return if other coin is within 50m
         val distance = distanceTo(coin.position, curLocation)
         Log.d(tag, "Distance between coin and current location: $distance")
-        return (distance <= 50.0)
+        return (distance <= 25.0)
     }
 
     //calculates the distance between to LatLng
@@ -686,7 +686,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                         for (k in coinzMap.keys) {
                             // for each coin, add  a marker to the map with the relevant information
                             val collected = collectionStatus[k]
-                            if(!(collected as Boolean)) {
+                            if(collected == null || !(collected as Boolean)) {
                                 val coinJson = coinzMap[k] as String
                                 val gson = Gson()
                                 val coin = gson.fromJson(coinJson, Coin::class.java)
@@ -744,7 +744,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                         setRainbowCoin()
                         map?.addMarker(MarkerOptions()
                                 .position(magicCoin)
-                                .title(rainbowCoin))
+                                .title(rainbowCoin)
+                                .icon(IconFactory.getInstance(this).fromResource(R.drawable.rainbow_star)))
                     }
                 }
                 .addOnFailureListener { e ->

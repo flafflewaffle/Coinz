@@ -27,7 +27,6 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var signup : Button
     private lateinit var db : FirebaseFirestore
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)

@@ -12,5 +12,4 @@
         android:scrollbars="vertical"
         android:background="@color/md_grey_200"/>
 
-
 </RelativeLayout>
