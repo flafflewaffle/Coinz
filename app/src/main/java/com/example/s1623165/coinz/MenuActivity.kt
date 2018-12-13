@@ -26,7 +26,6 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onCreate(savedInstanceState: Bundle?) {
 
         //set listeners and default opening fragment to wallet
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
         setSupportActionBar(toolbar)
@@ -56,6 +55,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     //display corresponding fragment, wallet fragment is the default
+
     fun displayFragment(id: Int) {
         val fragment = when (id) {
             R.id.nav_wallet -> {

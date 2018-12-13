@@ -391,5 +391,4 @@ class WalletFragment : Fragment() {
                     Log.d("Wallet Preference", e.toString())
                 }
     }
-
 }

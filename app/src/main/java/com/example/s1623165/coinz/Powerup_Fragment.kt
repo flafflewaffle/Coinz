@@ -64,10 +64,10 @@ class Powerup_Fragment : Fragment() {
     }
 
     private fun setPowerups() {
-        powerups.add(PowerItem(R.drawable.ic_stars_green_24dp, "Randomise Currencies!", 250))
-        powerups.add(PowerItem(R.drawable.ic_stars_yellow_24dp, "Randomise Exchange Rates!", 350))
-        powerups.add(PowerItem(R.drawable.ic_stars_red_24dp, "Double Coins!", 500))
-        powerups.add(PowerItem(R.drawable.ic_stars_blue_24dp, "Double Wallet!", 1000))
+        powerups.add(PowerItem(R.drawable.ic_stars_blue_24dp, "Randomise Exchange Rates!", 250))
+        powerups.add(PowerItem(R.drawable.ic_stars_green_24dp, "Randomise Currencies!", 500))
+        powerups.add(PowerItem(R.drawable.ic_stars_red_24dp, "Double Coins!", 1000))
+
     }
 
     // builds the recycler view and sets the on click listener
@@ -103,14 +103,6 @@ class Powerup_Fragment : Fragment() {
                 builder.setMessage("This randomises the exchange rates for all the currencies. It costs ${powerItem.price}. Would you like to activate?")
                 builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
                     if(check(powerItem)) { randomiseExchangeRates() }
-                }
-                builder.setNegativeButton("NO") { dialog: DialogInterface?, which: Int -> }
-                builder.show()
-            }
-            "Double Wallet!" -> {
-                builder.setMessage("This doubles the values of all coins in your wallet! It costs ${powerItem.price}. Would you like to activate?")
-                builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
-                    if(check(powerItem)) { }
                 }
                 builder.setNegativeButton("NO") { dialog: DialogInterface?, which: Int -> }
                 builder.show()

@@ -70,6 +70,7 @@ public final class Coin {
 
     public void setValue(double newValue) { this.value = newValue; }
     public void setCurrency(String newValue) { this.currency = newValue; }
+
 }
 
 

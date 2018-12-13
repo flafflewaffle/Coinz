@@ -176,11 +176,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 showDownloadSuccessful()
             }
         }
-
-        //always log and present exchange rates on start
-        Log.d(tag, "lastDownloadDate: " + lastDownloadDate)
-        Log.d(tag, "curentDate: " + currentDate)
-        Log.d(tag, geoJsonString)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -407,16 +402,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
         rainbowReference.set(rainbow)
                 .addOnSuccessListener { _ ->
-                    Toast.makeText(this,
-                            "Rainbow Coin successfully set",
-                            Toast.LENGTH_SHORT)
-                            .show()
+                    Log.d(tag, "Rainbow coin successfully set")
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this,
-                            "Error setting rainbow coin",
-                            Toast.LENGTH_SHORT)
-                            .show()
+                    Log.d(tag, "Error setting rainbow coin")
                     Log.d("WalletFragment", e.toString())
                 }
     }
@@ -442,26 +431,26 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                                     }
                         }
                     }
-
-                    // set all coins collection status to false
-                    val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
-                    val coinzMap = settings.all
-
-                    for(k in coinzMap.keys) {
-                        val collect = HashMap<String, Any>()
-                        collect[k] = false
-                        collectedReference.set(collect, SetOptions.merge())
-                                .addOnSuccessListener { _ ->
-                                    Log.d(tag, "Collection status of coin: $k successfully set")
-                                }
-                                .addOnFailureListener { e ->
-                                    Log.d(tag, e.toString())
-                                }
-                    }
                 }
                 .addOnFailureListener { e ->
                     Log.d(tag, e.toString())
                 }
+
+        // set all coins (for today's map) collection status to false
+        val settings = getSharedPreferences("map", Context.MODE_PRIVATE)
+        val coinzMap = settings.all
+
+        for(k in coinzMap.keys) {
+            val collect = HashMap<String, Any>()
+            collect[k] = false
+            collectedReference.set(collect, SetOptions.merge())
+                    .addOnSuccessListener { _ ->
+                        Log.d(tag, "Collection status of coin: $k successfully set")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.d(tag, e.toString())
+                    }
+        }
     }
 
     // reset the allowance to 25 on a new day
@@ -696,8 +685,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                         val collectionStatus = documentSnapshot.data!!
                         for (k in coinzMap.keys) {
                             // for each coin, add  a marker to the map with the relevant information
-                            val collected = collectionStatus[k] as Boolean
-                            if(!collected) {
+                            val collected = collectionStatus[k]
+                            if(!(collected as Boolean)) {
                                 val coinJson = coinzMap[k] as String
                                 val gson = Gson()
                                 val coin = gson.fromJson(coinJson, Coin::class.java)
@@ -747,7 +736,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                         else {
                             map?.addMarker(MarkerOptions()
                                     .position(magicCoin)
-                                    .title(rainbowCoin))
+                                    .title(rainbowCoin)
+                                    .icon(IconFactory.getInstance(this).fromResource(R.drawable.rainbow_star)))
                         }
                     }
                     else {

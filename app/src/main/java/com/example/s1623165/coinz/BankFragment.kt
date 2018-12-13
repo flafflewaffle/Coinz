@@ -94,9 +94,9 @@ class BankFragment : Fragment() {
     //set bar entries for each currency
     private fun setBarEntries() {
         barEntries.add(BarEntry(0F, exchangeRates["QUID"]!!.toFloat()))
-        barEntries.add(BarEntry(1F,exchangeRates["DOLR"]!!.toFloat()))
-        barEntries.add(BarEntry(2F,exchangeRates["PENY"]!!.toFloat()))
-        barEntries.add(BarEntry(3F,exchangeRates["SHIL"]!!.toFloat()))
+        barEntries.add(BarEntry(1F, exchangeRates["DOLR"]!!.toFloat()))
+        barEntries.add(BarEntry(2F, exchangeRates["PENY"]!!.toFloat()))
+        barEntries.add(BarEntry(3F, exchangeRates["SHIL"]!!.toFloat()))
         currencies.add("QUID")
         currencies.add("DOLR")
         currencies.add("PENY")

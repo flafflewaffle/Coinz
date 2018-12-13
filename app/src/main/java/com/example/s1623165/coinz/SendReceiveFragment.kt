@@ -97,6 +97,4 @@ class SendReceiveFragment : Fragment() {
         recyclerView.layoutManager = this.layoutManager
         recyclerView.adapter = this.adapter
     }
-
-
 }

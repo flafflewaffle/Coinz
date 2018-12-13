@@ -39,7 +39,6 @@ class SignUpActivity : AppCompatActivity() {
                 //Upload data to database
                 val userEmail = email.text.toString().trim()
                 val userPassword = password.text.toString().trim()
-
                 mAuth.createUserWithEmailAndPassword(userEmail, userPassword)
                         .addOnCompleteListener { task ->
                             if(task.isSuccessful) {
@@ -92,7 +91,6 @@ class SignUpActivity : AppCompatActivity() {
         }
         return true
     }
-
     // sets the views of variables
     private fun setUpUIViews() {
         password = findViewById(R.id.signup_password)

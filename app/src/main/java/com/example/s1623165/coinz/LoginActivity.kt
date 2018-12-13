@@ -27,6 +27,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var signup : Button
     private lateinit var db : FirebaseFirestore
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -34,6 +35,7 @@ class LoginActivity : AppCompatActivity() {
         setUpUIViews()
         mAuth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
+
         val currentUser = mAuth.currentUser
         if(currentUser != null) {
             finish()
@@ -66,7 +68,6 @@ class LoginActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT)
                     .show()
         } else {
-
             mAuth.signInWithEmailAndPassword(userEmail, userPassword)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
