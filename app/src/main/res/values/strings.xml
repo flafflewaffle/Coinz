@@ -24,4 +24,11 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
+    <string name="tutorial">Welcome to Coinz!\nThe objective of the game is to collect as much gold
+        as possible by exploring the map and collecting coinz.Coinz can be collected and exchanged
+        for gold. You can bank up to 25 coins per day.\nThere are 4 different currencies, and on each
+        day a new gold exchange rate for that currency. With this gold, you can also help your friends
+        by sending them gold, and purchasing power-ups! Happy collecting!
+    </string>
 </resources>

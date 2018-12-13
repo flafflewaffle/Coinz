@@ -193,6 +193,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 showDialogueExchangeRates()
                 return true
             }
+            R.id.action_tutorial -> {
+                showDialogueTutorial()
+                return true
+            }
             R.id.action_logout -> {
                 showDialogueLogout()
                 return true
@@ -413,7 +417,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     // remove collection status of coins from previous day and set all collection statuses
     // for the new day to false
     private fun setCollected() {
-
         collectedReference.get()
                 .addOnSuccessListener { documentSnapshot ->
                     // if coins form the previous day are in collected, remove all from the document
@@ -487,6 +490,16 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Exchange Rates")
         builder.setMessage(getExchangeRates())
+        builder.setPositiveButton("OK"){dialog: DialogInterface?, which: Int -> }
+        builder.show()
+    }
+
+    // present an alert dialogue with the explanation of the game
+    private fun showDialogueTutorial() {
+        // alert dialogue does no action except present information on map start
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Tutorial")
+        builder.setMessage(R.string.tutorial)
         builder.setPositiveButton("OK"){dialog: DialogInterface?, which: Int -> }
         builder.show()
     }
