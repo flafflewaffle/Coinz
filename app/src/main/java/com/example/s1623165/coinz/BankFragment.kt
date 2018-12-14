@@ -55,10 +55,10 @@ class BankFragment : Fragment() {
         textView.gravity = Gravity.CENTER
 
         // set the colours for each currency
-        colours.add(ContextCompat.getColor(barChart.context, R.color.colorPrimary))
+        colours.add(ContextCompat.getColor(barChart.context, R.color.fbGreen))
         colours.add(ContextCompat.getColor(barChart.context, R.color.colorAccent))
         colours.add(ContextCompat.getColor(barChart.context, R.color.fbYellow))
-        colours.add(ContextCompat.getColor(barChart.context, R.color.fbGreen))
+        colours.add(ContextCompat.getColor(barChart.context, R.color.colorPrimary))
 
         //create bar chart
         val barDataSet = BarDataSet(barEntries, "Exchange Rates")
