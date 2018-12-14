@@ -32,6 +32,8 @@ class BankFragment : Fragment() {
     private lateinit var barChart : BarChart
     private lateinit var textView : TextView
 
+    //---------------INITIALISATION---------------//
+
     override fun onAttach(context: Context?) {
         super.onAttach(context)
         this.mContext = context!!
@@ -80,6 +82,8 @@ class BankFragment : Fragment() {
         }
         return root
     }
+
+    //---------------SETTER FUNCTIONS---------------//
 
     // retrieve the current exchange rates from shared preferences
     private fun setExchangeRates() {

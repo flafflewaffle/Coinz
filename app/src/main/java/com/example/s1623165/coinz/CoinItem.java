@@ -1,5 +1,6 @@
 package com.example.s1623165.coinz;
 
+// The coinitem class is used to be displayed in the wallet
 public class CoinItem {
 
     private int coinImageResource;

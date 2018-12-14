@@ -11,6 +11,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+// The Wallet Adapter and Wallet View holders are custom classes to be used by the recycler view
+// in the wallet fragment. They display the correct instances of coinitems and set the onclick listeners.
+// The functionality is implemented in walletfragment
 public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.WalletViewHolder> {
 
     private ArrayList<CoinItem> wallet;

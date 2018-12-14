@@ -85,6 +85,8 @@ class Powerup_Fragment : Fragment() {
         }
     }
 
+    //---------------POWER UP FUNCTIONALITY---------------//
+
     // present an alert dialogue for the relevant powerup
     private fun showDialoguePowerup(powerItem: PowerItem) {
         Log.d(tag, "dialogue for banking coin")
@@ -121,6 +123,7 @@ class Powerup_Fragment : Fragment() {
         }
     }
 
+    // set the arraylist of currency strings, and the exchange rate values
     private fun setCurrencies() {
         val settings = activity!!.getSharedPreferences(prefsFile, Context.MODE_PRIVATE)
         exchangeRates.add(settings.getString("QUID",""))

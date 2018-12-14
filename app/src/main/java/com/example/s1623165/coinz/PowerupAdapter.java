@@ -10,6 +10,10 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+// The Powerup Adapter and Powerup View holders are custom classes to be used by the recycler view
+// in the wallet fragment. They display the correct instances of poweritems and set the onclick listeners.
+// The functionality is implemented in powerup fragment
+
 public class PowerupAdapter extends RecyclerView.Adapter<PowerupAdapter.PowerupViewHolder> {
     private ArrayList<PowerItem> powerups;
     private PowerupAdapter.OnItemClickListener mListener;

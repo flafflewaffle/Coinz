@@ -5,6 +5,8 @@ import android.location.Location;
 import com.google.gson.Gson;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
+// The coin class saves basic information of the coin required to be accessed/set
+// follows the builder design pattern
 public final class Coin {
 
     private String id;
@@ -63,6 +65,7 @@ public final class Coin {
         }
     }
 
+    // returns the instance of the coin as a json string
     public String toString() {
         Gson gson  = new Gson();
         return gson.toJson(this);

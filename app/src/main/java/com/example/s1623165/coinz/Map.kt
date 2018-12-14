@@ -79,18 +79,21 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
     private var map: MapboxMap? = null
     private var locationComponent: LocationComponent? = null
     private var coinMarkerIcons : HashMap<String, Icon> = HashMap()
+    private lateinit var magicCoin : LatLng
 
     private lateinit var geoJsonString: String
     private lateinit var lastDownloadDate : String
     private lateinit var currentDate : String
     private lateinit var permissionsManager : PermissionsManager
+
     private lateinit var mAuth : FirebaseAuth
     private lateinit var db : FirebaseFirestore
     private lateinit var walletReference: DocumentReference
     private lateinit var bankReference: DocumentReference
     private lateinit var rainbowReference: DocumentReference
     private lateinit var collectedReference: DocumentReference
-    private lateinit var magicCoin : LatLng
+
+
 
     //---------------INITIALISATION---------------//
 
@@ -753,6 +756,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                         }
                     }
                     else {
+                        // if the rainbow coin has not been initialised in the database, set it, and
+                        // activate the marker
                         setRainbowCoin()
                         map?.addMarker(MarkerOptions()
                                 .position(magicCoin)

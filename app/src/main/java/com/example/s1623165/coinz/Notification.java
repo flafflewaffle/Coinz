@@ -1,5 +1,6 @@
 package com.example.s1623165.coinz;
 
+// The Notification class is used to be displayed in Notifcations
 public class Notification {
 
     private int noteImageResource;

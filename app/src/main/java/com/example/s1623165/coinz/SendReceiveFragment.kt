@@ -30,6 +30,8 @@ class SendReceiveFragment : Fragment() {
     private lateinit var adapter: NotificationsAdapter
     private lateinit var layoutManager: RecyclerView.LayoutManager
 
+    //---------------SENDING COIN---------------//
+
     override fun onAttach(context: Context?) {
         super.onAttach(context)
         this.mContext = context!!
@@ -49,6 +51,8 @@ class SendReceiveFragment : Fragment() {
         recyclerView = root.findViewById(R.id.sendRecyclerView)
         return root
     }
+
+    //---------------SETTER FUNCTIONS---------------//
 
     //retrieve notifications from the database and add them as notification items to the wallet
     private fun getNotifications() {

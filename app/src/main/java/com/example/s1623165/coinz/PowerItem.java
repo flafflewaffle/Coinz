@@ -1,5 +1,6 @@
 package com.example.s1623165.coinz;
 
+// The Power item is used to be displayed in the Power-ups
 public class PowerItem {
 
     private int powerImageResource;

@@ -10,6 +10,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+// The Notifications Adapter and Notifications View holders are custom classes to be used by the recycler view
+// in the wallet fragment. They display the correct instances of notifications and set the onclick listeners.
+// The functionality is implemented in notifications fragment
 public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdapter.NotificationViewHolder>{
 
     private ArrayList<Notification> notifications;
