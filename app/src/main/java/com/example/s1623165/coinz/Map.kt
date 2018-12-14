@@ -165,7 +165,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
                 editor.putBoolean("Randomise Currencies!", false)
                 editor.putBoolean("Randomise Exchange Rates!", false)
                 editor.putBoolean("Double Coins!", false)
-                editor.putBoolean("Double Wallet!", false)
                 editor.apply()
                 // call setters
                 setAllowance()
