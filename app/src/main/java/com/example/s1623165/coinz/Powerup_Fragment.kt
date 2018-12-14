@@ -108,8 +108,7 @@ class Powerup_Fragment : Fragment() {
                 builder.show()
             }
             "Double Coins!" -> {
-                builder.setMessage("This doubles the values of all coins on the map, and " +
-                        "affects all users on the app! It costs ${powerItem.price}. Would you like to activate?")
+                builder.setMessage("This doubles the values of all coins on the map. It costs ${powerItem.price}. Would you like to activate?")
                 builder.setPositiveButton("YES") { dialog: DialogInterface?, which: Int ->
                     if(check(powerItem)) { doubleCoins() }
                 }
